@@ -30,7 +30,7 @@ function SwaggerEditor({ url, spec }: Props) {
       window.editor = editor;
     }
   }, [ref, url, spec]);
-  return <div id="swagger-editor" className="flex-1 min-h-0" ref={ref}></div>;
+  return <div id="swagger-editor" className="h-full" ref={ref}></div>;
 }
 
 export default SwaggerEditor;

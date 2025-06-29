@@ -6,5 +6,9 @@ type Params = {
 };
 
 export default function SwaggerViewer({ url }: Params) {
-  return <SwaggerUI url={url} />;
+  return (
+    <div className="h-full overflow-y-auto">
+      <SwaggerUI url={url} />
+    </div>
+  );
 }

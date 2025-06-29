@@ -35,3 +35,5 @@ declare module "swagger-editor-dist/swagger-editor-standalone-preset" {
   const SwaggerEditorStandalonePreset: object;
   export default SwaggerEditorStandalonePreset;
 }
+
+// declare module
