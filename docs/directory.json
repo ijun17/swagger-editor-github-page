@@ -1,16 +1,1 @@
-[
-  {
-    "name": "api.json",
-    "path": "docs/api.json",
-    "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/api.json",
-    "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/api.json",
-    "type": "file"
-  },
-  {
-    "name": "directory.json",
-    "path": "docs/directory.json",
-    "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/directory.json",
-    "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/directory.json",
-    "type": "file"
-  }
-]
+WwogIHsKICAgICJuYW1lIjogImFwaS5qc29uIiwKICAgICJwYXRoIjogImRvY3MvYXBpLmpzb24iLAogICAgImh0bWxfdXJsIjogImh0dHBzOi8vZ2l0aHViLmNvbS9panVuMTcvc3dhZ2dlci1lZGl0b3ItZ2l0aHViLXBhZ2UvYmxvYi9tYWluL2RvY3MvYXBpLmpzb24iLAogICAgImRvd25sb2FkX3VybCI6ICJodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vaWp1bjE3L3N3YWdnZXItZWRpdG9yLWdpdGh1Yi1wYWdlL21haW4vZG9jcy9hcGkuanNvbiIsCiAgICAidHlwZSI6ICJmaWxlIgogIH0sCiAgewogICAgIm5hbWUiOiAiZGlyZWN0b3J5Lmpzb24iLAogICAgInBhdGgiOiAiZG9jcy9kaXJlY3RvcnkuanNvbiIsCiAgICAiaHRtbF91cmwiOiAiaHR0cHM6Ly9naXRodWIuY29tL2lqdW4xNy9zd2FnZ2VyLWVkaXRvci1naXRodWItcGFnZS9ibG9iL21haW4vZG9jcy9kaXJlY3RvcnkuanNvbiIsCiAgICAiZG93bmxvYWRfdXJsIjogImh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9panVuMTcvc3dhZ2dlci1lZGl0b3ItZ2l0aHViLXBhZ2UvbWFpbi9kb2NzL2RpcmVjdG9yeS5qc29uIiwKICAgICJ0eXBlIjogImZpbGUiCiAgfQpd
