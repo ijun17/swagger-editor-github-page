@@ -1,1 +1,16 @@
-WwogIHsKICAgICJuYW1lIjogImFwaS5qc29uIiwKICAgICJwYXRoIjogImRvY3MvYXBpLmpzb24iLAogICAgImh0bWxfdXJsIjogImh0dHBzOi8vZ2l0aHViLmNvbS9panVuMTcvc3dhZ2dlci1lZGl0b3ItZ2l0aHViLXBhZ2UvYmxvYi9tYWluL2RvY3MvYXBpLmpzb24iLAogICAgImRvd25sb2FkX3VybCI6ICJodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vaWp1bjE3L3N3YWdnZXItZWRpdG9yLWdpdGh1Yi1wYWdlL21haW4vZG9jcy9hcGkuanNvbiIsCiAgICAidHlwZSI6ICJmaWxlIgogIH0KXQ==
+[
+  {
+    "name": "api.json",
+    "path": "docs/api.json",
+    "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/api.json",
+    "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/api.json",
+    "type": "file"
+  },
+  {
+    "name": "directory.json",
+    "path": "docs/directory.json",
+    "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/directory.json",
+    "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/directory.json",
+    "type": "file"
+  }
+]
