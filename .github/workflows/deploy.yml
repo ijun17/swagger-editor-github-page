@@ -1,8 +1,9 @@
 name: Deploy static content to Pages
 
 on:
-  push:
-    branches: ["main"]
+  # 깃허브에서 직접 실행
+  # push:
+  #   branches: ["main"]
   workflow_dispatch:
 
 permissions:
