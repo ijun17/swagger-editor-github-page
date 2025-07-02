@@ -10,26 +10,77 @@ const templates = [
     template: `
 openapi: "3.0.0"
 info:
-  title: ""
+  title: "API Title"
   version: "1.0.0"
-paths: {}
-components: {}
-`,
+  description: "API description"
+paths:
+  /example:
+    get:
+      summary: "Example GET"
+      responses:
+        '200':
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Example"
+components:
+  schemas:
+    Example:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Hello, world"
+`.trim(),
   },
   {
     name: "OpenAPI 3.0 - JSON",
     extension: "json",
-    template: `
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "",
-    "version": "1.0.0"
-  },
-  "paths": {},
-  "components": {}
-}
-`,
+    template: JSON.stringify(
+      {
+        openapi: "3.0.0",
+        info: {
+          title: "API Title",
+          version: "1.0.0",
+          description: "API description",
+        },
+        paths: {
+          "/example": {
+            get: {
+              summary: "Example GET",
+              responses: {
+                "200": {
+                  description: "Successful response",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        $ref: "#/components/schemas/Example",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        components: {
+          schemas: {
+            Example: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                  example: "Hello, world",
+                },
+              },
+            },
+          },
+        },
+      },
+      null,
+      2
+    ),
   },
   {
     name: "OpenAPI 2.0 - YAML",
@@ -37,37 +88,78 @@ components: {}
     template: `
 swagger: "2.0"
 info:
-  title: ""
+  title: "API Title"
   version: "1.0.0"
-paths: {}
-definitions: {}
-`,
+  description: "API description"
+paths:
+  /example:
+    get:
+      summary: "Example GET"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/Example"
+definitions:
+  Example:
+    type: object
+    properties:
+      message:
+        type: string
+        example: "Hello, world"
+`.trim(),
   },
   {
     name: "OpenAPI 2.0 - JSON",
     extension: "json",
-    template: `
-{
-  "swagger": "2.0",
-  "info": {
-    "title": "",
-    "version": "1.0.0"
+    template: JSON.stringify(
+      {
+        swagger: "2.0",
+        info: {
+          title: "API Title",
+          version: "1.0.0",
+          description: "API description",
+        },
+        paths: {
+          "/example": {
+            get: {
+              summary: "Example GET",
+              responses: {
+                "200": {
+                  description: "Successful response",
+                  schema: {
+                    $ref: "#/definitions/Example",
+                  },
+                },
+              },
+            },
+          },
+        },
+        definitions: {
+          Example: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                example: "Hello, world",
+              },
+            },
+          },
+        },
+      },
+      null,
+      2
+    ),
   },
-  "paths": {},
-  "definitions": {}
-}
-`,
-  },
-
   {
     name: "Empty YAML",
     extension: "yaml",
-    template: "",
+    template: "# Add your OpenAPI spec here\n",
   },
   {
     name: "Empty JSON",
     extension: "json",
-    template: "",
+    template: "// Add your OpenAPI spec here\n",
   },
 ] as const;
 
@@ -96,7 +188,7 @@ const CreateFileModal: React.FC<InputModalProps> = ({
         folder: folder || folderName,
         file: fileName,
         extension: currentTemplete?.extension || "json",
-        content: currentTemplete?.template || "",
+        content: currentTemplete?.template.trim() || "",
       },
       {
         onSuccess: onClose,
