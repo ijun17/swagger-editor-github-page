@@ -71,11 +71,13 @@ export function useDirectoryJson() {
         ? getApiContentUrl(directory_path)
         : getContentUrl(directory_path);
       const headers = token ? getApiContentHeaders(token) : undefined;
-
-      return await fetch(url, {
+      const res = await fetch(url, {
         cache: "no-store",
         headers,
-      }).then((res) => res.json());
+      });
+      if (!res.ok) throw Error("Not Found: " + directory_path);
+      const directory = res.json();
+      return directory;
     },
     queryKey: ["directoryJson"],
     retry: 1,

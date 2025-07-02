@@ -1,6 +1,6 @@
 import Loader from "../common/Loader";
 import Overlay from "../common/Overlay";
-import { useDeleteFile } from "../../api/github-client-hook";
+import { useDeleteFile } from "@/api/github-client-hook";
 
 interface Props {
   isOpen: boolean;

@@ -13,5 +13,8 @@ export default ({ mode }: ConfigEnv) => {
         strict: false,
       },
     },
+    resolve: {
+      alias: [{ find: "@", replacement: "/src" }],
+    },
   });
 };

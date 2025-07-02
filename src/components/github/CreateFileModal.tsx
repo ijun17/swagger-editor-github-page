@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAddFile } from "../../api/github-client-hook";
+import { useAddFile } from "@/api/github-client-hook";
 import Overlay from "../common/Overlay";
 import Loader from "../common/Loader";
 

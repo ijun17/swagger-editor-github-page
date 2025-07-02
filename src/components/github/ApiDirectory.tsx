@@ -1,13 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  useDirectoryJson,
-  useGitHubStore,
-  useInitDirectory,
-} from "../../api/github-client-hook";
-import Overlay from "../common/Overlay";
+import { useDirectoryJson, useGitHubStore } from "@/api/github-client-hook";
 import CreateFileModal from "./CreateFileModal";
 import DeleteFileModal from "./DeleteFileModal";
-import Loader from "../common/Loader";
+import InitDirectoryModal from "./InitDirectoryModal";
 
 type Props = {
   handlePageChange: (pageState: "editor" | "viewer", url: string) => void;
@@ -15,6 +10,7 @@ type Props = {
 
 export default function ApiDirectory({ handlePageChange }: Props) {
   const [openCreateFileModal, setOpenCreateFileModal] = useState(false);
+  const [openInitDirectoryModal, setOpenInitDirectoryModal] = useState(false);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(
     null
   );
@@ -22,10 +18,12 @@ export default function ApiDirectory({ handlePageChange }: Props) {
 
   const { isLoggedIn } = useGitHubStore();
   const directoryQuery = useDirectoryJson();
-  const directoryMutation = useInitDirectory();
 
   const directory = useMemo(
-    () => directoryQuery.data?.filter((e) => e.type === "dir") ?? [],
+    () =>
+      directoryQuery.data
+        ? directoryQuery.data.filter((e) => e.type === "dir")
+        : [],
     [directoryQuery.data]
   );
   const currentFoleder = (
@@ -42,22 +40,14 @@ export default function ApiDirectory({ handlePageChange }: Props) {
 
   return (
     <div className="min-w-2xl w-full h-full flex overflow-x-auto">
-      {directoryQuery.isError && isLoggedIn && (
-        <Overlay isOpen={directoryQuery.isError}>
-          <div className="bg-white max-w-lg w-[90%] h-40 rounded p-6 flex flex-col justify-between">
-            <div className="text-center text-lg">
-              doc/directory.json is not exist
-            </div>
-            <button
-              className="w-full p-2 bg-green-600 rounded"
-              onClick={() => directoryMutation.mutate()}
-            >
-              create directory.json
-            </button>
-          </div>
-        </Overlay>
+      {isLoggedIn && (
+        <InitDirectoryModal
+          isOpen={openInitDirectoryModal}
+          isError={directoryQuery.isError}
+          onClose={() => setOpenInitDirectoryModal(false)}
+        />
       )}
-      {directoryMutation.isPending && <Loader />}
+
       {/* 좌측 패널 */}
       <div className="w-1/4 border-r border-gray-300 p-4 bg-white flex flex-col">
         <div className="flex justify-between items-center mb-4">
@@ -90,7 +80,7 @@ export default function ApiDirectory({ handlePageChange }: Props) {
         {isLoggedIn && (
           <button
             className="rounded border border-gray-400 p-1 text-gray-400 hover:bg-gray-100"
-            onClick={() => directoryMutation.mutate()}
+            onClick={() => setOpenInitDirectoryModal(true)}
           >
             reset directory
           </button>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import LoginModal from "./LoginModal";
-import { useGitHubStore, useUpdateFiles } from "../../api/github-client-hook";
+import { useGitHubStore, useUpdateFiles } from "@/api/github-client-hook";
 import Loader from "../common/Loader";
 
 const SWAGGER_LOCALSTORAGE_ITEM = "swagger-editor-content";
