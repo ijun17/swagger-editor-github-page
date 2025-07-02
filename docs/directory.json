@@ -1,0 +1,48 @@
+[
+  {
+    "name": "api.json",
+    "path": "docs/api.json",
+    "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/api.json",
+    "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/api.json",
+    "type": "file"
+  },
+  {
+    "name": "directory.json",
+    "path": "docs/directory.json",
+    "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/directory.json",
+    "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/directory.json",
+    "type": "file"
+  },
+  {
+    "name": "docs",
+    "path": "docs/docs",
+    "html_url": "https://github.com/ijun17/swagger-editor-github-page/tree/main/docs/docs",
+    "download_url": null,
+    "type": "dir",
+    "items": [
+      {
+        "name": "asdf",
+        "path": "docs/docs/asdf",
+        "html_url": "https://github.com/ijun17/swagger-editor-github-page/tree/main/docs/docs/asdf",
+        "download_url": null,
+        "type": "dir",
+        "items": [
+          {
+            "name": "asdf.json",
+            "path": "docs/docs/asdf/asdf.json",
+            "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/docs/asdf/asdf.json",
+            "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/docs/asdf/asdf.json",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "name": "new.yaml",
+        "path": "docs/docs/new.yaml",
+        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/docs/new.yaml",
+        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/docs/new.yaml",
+        "type": "file"
+      }
+    ]
+  }
+]
