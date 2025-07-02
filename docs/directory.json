@@ -37,21 +37,5 @@
         ]
       }
     ]
-  },
-  {
-    "name": "new folder",
-    "path": "docs/new folder",
-    "html_url": "https://github.com/ijun17/swagger-editor-github-page/tree/main/docs/new%20folder",
-    "download_url": null,
-    "type": "dir",
-    "items": [
-      {
-        "name": "api.yaml",
-        "path": "docs/new folder/api.yaml",
-        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/new%20folder/api.yaml",
-        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/new%20folder/api.yaml",
-        "type": "file"
-      }
-    ]
   }
 ]
