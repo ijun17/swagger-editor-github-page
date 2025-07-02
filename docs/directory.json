@@ -42,13 +42,6 @@
         "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/test/test2.json",
         "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/test/test2.json",
         "type": "file"
-      },
-      {
-        "name": "test3.yaml",
-        "path": "docs/test/test3.yaml",
-        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/test/test3.yaml",
-        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/test/test3.yaml",
-        "type": "file"
       }
     ]
   }
