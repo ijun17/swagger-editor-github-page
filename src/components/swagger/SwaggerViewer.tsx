@@ -1,5 +1,6 @@
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
+import "./SwaggerEditor.css";
 import { useEditorUrl } from "@/api/github-client-hook";
 
 type Params = {
