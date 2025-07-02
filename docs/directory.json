@@ -26,6 +26,13 @@
         "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/asdf/test.yaml",
         "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/asdf/test.yaml",
         "type": "file"
+      },
+      {
+        "name": "test2.json",
+        "path": "docs/asdf/test2.json",
+        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/asdf/test2.json",
+        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/asdf/test2.json",
+        "type": "file"
       }
     ]
   },
