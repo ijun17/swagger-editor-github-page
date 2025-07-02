@@ -63,5 +63,5 @@
   display: none;
 }
 .swagger-editor-hide-code .ace_layer {
-  display: none;
+  visibility: hidden;
 }
