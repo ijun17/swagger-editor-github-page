@@ -10,24 +10,26 @@ const owner = import.meta.env.VITE_GITHUB_OWNER;
 const email = import.meta.env.VITE_GITHUB_EMAIL;
 const repo = import.meta.env.VITE_GITHUB_REPO;
 const branch = import.meta.env.VITE_GITHUB_BRANCH;
-const API_PATH = "docs";
+const API_PATH = import.meta.env.VITE_GITHUB_API_PATH;
 const FILE_PATH = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`;
 
-export function getContentUrl(path: string) {
-  return FILE_PATH + path;
+function getContentUrl(path: string) {
+  return FILE_PATH + path + `?t=${Date.now().toString()}`;
 }
-export function extractPathFromContentUrl(url: string) {
-  return url.replace(FILE_PATH, "");
+
+function getApiContentHeaders(token: string) {
+  return {
+    Authorization: `token ${token}`,
+    Accept: "application/vnd.github.v3.raw",
+  };
 }
-export function getApiContentUrl(path: string) {
+function getApiContentUrl(path: string) {
   return `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-}
-export function createPath(folder: string, file: string, extention: string) {
-  return `${API_PATH}/${folder}/${file}.${extention}`;
 }
 const directory_path = API_PATH + "/directory.json";
 const LOCALSTORAGE_GITHUB_TOKEN = "gh_token";
 
+// 옥토켓 클라이언트 및 인증 관련 전역 상태
 interface GitHubState {
   client: GitHubClient | null;
   token: string | null;
@@ -61,30 +63,23 @@ if (localStorageToken) {
 
 // Fetch doc/directory.json
 export function useDirectoryJson() {
-  const { isLoggedIn, token } = useGitHubStore();
+  const { token } = useGitHubStore();
   return useQuery<DirectoryStructure | null>({
     queryFn: async () => {
-      if (isLoggedIn) {
-        return await fetch(getApiContentUrl(directory_path), {
-          cache: "no-store",
-          headers: {
-            Authorization: `token ${token}`,
-            Accept: "application/vnd.github.v3.raw",
-          },
-        }).then((res) => res.json());
-      }
-      return await fetch(
-        FILE_PATH + directory_path + `?t=${Date.now().toString()}`,
-        {
-          cache: "no-store",
-        }
-      ).then((res) => res.json());
+      // 로그인되어 있으면 API url에서
+      const url = token
+        ? getApiContentUrl(directory_path)
+        : getContentUrl(directory_path);
+      const headers = token ? getApiContentHeaders(token) : undefined;
+
+      return await fetch(url, {
+        cache: "no-store",
+        headers,
+      }).then((res) => res.json());
     },
     queryKey: ["directoryJson"],
     retry: 1,
     refetchOnWindowFocus: false,
-    staleTime: 0,
-    cacheTime: 0,
   });
 }
 
@@ -93,10 +88,20 @@ export function useAddFile() {
   const { client } = useGitHubStore();
   const qc = useQueryClient();
   return useMutation(
-    async ({ path, content }: FileOperation) => {
+    async (params: {
+      folder: string;
+      file: string;
+      extension: string;
+      content: string;
+    }) => {
       if (!client) throw new Error("Not logged in");
+      const path = `${API_PATH}/${params.folder}/${params.file}.${params.extension}`;
       // Create new file
-      await client.createOrUpdateFileContent(path, content, `Add ${path}`);
+      await client.createOrUpdateFileContent(
+        path,
+        params.content,
+        `docs: Add ${path}`
+      );
       // Update directory.json
       await initDirectory(client);
     },
@@ -111,7 +116,11 @@ export function useUpdateFiles() {
   const { client } = useGitHubStore();
   return useMutation(async ({ path, content }: FileOperation) => {
     if (!client) throw new Error("Not logged in");
-    await client.createOrUpdateFileContent(path, content, `Update ${path}`);
+    await client.createOrUpdateFileContent(
+      path,
+      content,
+      `docs: Update ${path}`
+    );
   });
 }
 
@@ -122,7 +131,7 @@ export function useDeleteFile() {
   return useMutation(
     async (path: string) => {
       if (!client) throw new Error("Not logged in");
-      await client.deleteFile(path, `Delete ${path}`);
+      await client.deleteFile(path, `docs: Delete ${path}`);
       await initDirectory(client);
     },
     {
@@ -146,9 +155,9 @@ export function useRenameFile() {
       await client.createOrUpdateFileContent(
         newPath,
         content,
-        `Rename ${oldPath} → ${newPath}`
+        `docs: Rename ${oldPath} → ${newPath}`
       );
-      await client.deleteFile(oldPath, `Rename ${oldPath} → ${newPath}`);
+      await client.deleteFile(oldPath, `docs: Rename ${oldPath} → ${newPath}`);
 
       // Update manifest
       await initDirectory(client);
@@ -160,13 +169,9 @@ export function useRenameFile() {
 }
 
 export function useEditorUrl(path: string) {
-  const { isLoggedIn } = useGitHubStore();
-  const url = isLoggedIn
-    ? getApiContentUrl(path)
-    : getContentUrl(path) + `?t=${Date.now().toString()}`;
-  const headers: HeadersInit = isLoggedIn
-    ? { Accept: "application/vnd.github.v3.raw" }
-    : {};
+  const { token } = useGitHubStore();
+  const url = token ? getApiContentUrl(path) : getContentUrl(path);
+  const headers: HeadersInit = token ? getApiContentHeaders(token) : {};
   return { url, headers };
 }
 
@@ -194,6 +199,6 @@ async function initDirectory(client: GitHubClient) {
   await client.createOrUpdateFileContent(
     directory_path,
     JSON.stringify(dir, null, 2),
-    "Update directory.json"
+    "docs: Update directory.json"
   );
 }

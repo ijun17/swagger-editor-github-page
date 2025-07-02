@@ -1,15 +1,25 @@
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
-import { getContentUrl } from "../github/lib/github-client-hook";
+import { useEditorUrl } from "../github/lib/github-client-hook";
 
 type Params = {
   path: string;
 };
 
 export default function SwaggerViewer({ path }: Params) {
+  const { url, headers } = useEditorUrl(path);
   return (
     <div className="h-full overflow-y-auto">
-      <SwaggerUI url={getContentUrl(path) + `?t=${Date.now().toString()}`} />
+      <SwaggerUI
+        url={url}
+        requestInterceptor={(e) => {
+          e.headers = {
+            ...e.headers,
+            ...headers,
+          };
+          return e;
+        }}
+      />
     </div>
   );
 }

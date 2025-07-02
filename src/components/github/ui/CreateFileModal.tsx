@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createPath, useAddFile } from "../lib/github-client-hook";
+import { useAddFile } from "../lib/github-client-hook";
 import Overlay from "../../shared/ui/Overlay";
 import Loader from "../../shared/ui/Loader";
 
@@ -93,11 +93,9 @@ const CreateFileModal: React.FC<InputModalProps> = ({
   const handleCreateFile = () => {
     addFileMutation.mutate(
       {
-        path: createPath(
-          folder || folderName,
-          fileName,
-          currentTemplete?.extension || "json"
-        ),
+        folder: folder || folderName,
+        file: fileName,
+        extension: currentTemplete?.extension || "json",
         content: currentTemplete?.template || "",
       },
       {
