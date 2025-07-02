@@ -155,7 +155,6 @@ export default function ApiList({ handlePageChange }: Props) {
 
       {/* 폴더 생성 모달 */}
       <CreateFileModal
-        key={currentFolderName}
         isOpen={openCreateFileModal}
         onClose={() => setOpenCreateFileModal(false)}
         folder={currentFolderName}
