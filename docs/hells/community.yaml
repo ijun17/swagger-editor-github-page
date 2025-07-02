@@ -1,24 +1,486 @@
-openapi: "3.0.0"
+openapi: 3.0.0
 info:
-  title: "API Title"
-  version: "1.0.0"
-  description: "API description"
+  version: '1'
+  title: community
+  description: community
 paths:
-  /example:
-    get:
-      summary: "Example GET"
+  /users/me/password/reset-request:
+    post:
+      summary: 비밀번호 변경 요청
+      description: 해당 유저의 전화번호로 인증 번호 전송 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: 
+                  type: string
       responses:
         '200':
-          description: "Successful response"
+          description: OK
+      tags: ['user']
+      
+  /users/me/password/reset:
+    post:
+      summary: 비밀번호 변경
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: 
+                  type: string
+                code:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: OK
+      tags: ['user']
+      
+  /images:
+    post:
+      summary: 이미지 업로드(관리자만 가능)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: 업로드 성공
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Example"
+                type: object
+                properties:
+                  id:
+                    type: string
+                  url:
+                    type: string
+                    description: 업로드된 이미지의 접근 URL
+      tags: ['image']
+  /images/{imageId}:
+    parameters:
+      - name: imageId
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: 이미지 삭제(관리자만 가능)
+      responses:
+        '201':
+          description: 업로드 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  url:
+                    type: string
+                    description: 업로드된 이미지의 접근 URL
+      tags: ['image']
+      
+  /community/board/{boardId}/posts:
+    parameters:
+      - name: boardId
+        in: path
+        required: true
+        description: "0:자유게시판, 1:식단, 2:팀모집"
+        schema:
+          type: integer
+    post:
+      summary: 게시글 작성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      tags: ['community']
+
+    get:
+      summary: 게시글 목록 조회 (페이지네이션)
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: integer
+          required: false
+          description: 마지막으로 조회한 postId
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts: 
+                    $ref: '#/components/schemas/PostList'
+                  page: 
+                    $ref: '#/components/schemas/Pagination'
+      tags: ['community']
+
+  /community/posts/pinned:
+    get:
+      summary: 상단 고정 게시글 목록 조회
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts: 
+                    $ref: '#/components/schemas/PostList'
+      tags: ['community']
+
+  /community/posts/{postId}:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: 게시글 단건 조회
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      tags: ['community']
+
+    patch:
+      summary: 게시글 수정
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      tags: ['community']
+
+    delete:
+      summary: 게시글 삭제
+      responses:
+        '204':
+          description: No Content
+      tags: ['community']
+
+  /community/posts/{postId}/pin:
+    patch:
+      summary: 게시글 상단 고정 또는 해제
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pinned
+              properties:
+                pinned:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      tags: ['community']
+
+  /community/posts/{postId}/comments:
+    post:
+      summary: 댓글 또는 답글 작성
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+      tags: ['community']
+
+    get:
+      summary: 특정 게시글의 댓글/답글 조회 (댓글 페이지네이션, 답글은 최대 3개 조회)
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: parentId
+          in: query
+          required: false
+          schema:
+            type: integer
+            nullable: true
+          description: 최상위 댓글은 null, 특정 댓글의 답글은 해당 댓글의 ID
+        - name: cursor
+          in: query
+          schema:
+            type: integer
+          required: false
+          description: 마지막으로 조회한 commentId
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  comments: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+                  page: 
+                    $ref: '#/components/schemas/Pagination'
+      tags: ['community']
+
+  /community/comments/{commentId}:
+    patch:
+      summary: 댓글 또는 답글 수정
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+      tags: ['community']
+
+    delete:
+      summary: 댓글 또는 답글 삭제
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+      tags: ['community']
+
 components:
   schemas:
-    Example:
+    Pagination:
       type: object
       properties:
-        message:
+        nextCursor: 
+          type: integer
+        hasNext:
+          type: boolean
+          
+    Author:
+      type: object
+      required:
+        - content
+      properties:
+        id:
+          type: number
+        role:
           type: string
-          example: "Hello, world"
+        name: 
+          type: string
+        nickname: 
+          type: string
+        tier:
+          type: string
+          
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        author:
+          $ref: '#/components/schemas/Author'
+        pinned:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          
+    PostList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+          title:
+            type: string
+          author:
+            $ref: '#/components/schemas/Author'
+          pinned:
+            type: boolean
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
+
+    PostCreate:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    PostUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+          
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        parentId:
+          type: integer
+          nullable: true
+        content:
+          type: string
+        author:
+          $ref: '#/components/schemas/Author'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        hasMoreReplies:
+          type: boolean
+        replies:
+         type: array
+         items:
+           type: object
+           properties:
+              id: 
+                type: number
+              content: 
+                type: number
+              author:
+                $ref: '#/components/schemas/Author'
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+            
+    CommentCreate:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+        parentId:
+          type: integer
+          nullable: true
+
+    CommentUpdate:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/non-b86/community/1
