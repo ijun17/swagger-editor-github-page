@@ -35,6 +35,13 @@
             "type": "file"
           }
         ]
+      },
+      {
+        "name": "new.yaml",
+        "path": "docs/docs/new.yaml",
+        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/docs/new.yaml",
+        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/docs/new.yaml",
+        "type": "file"
       }
     ]
   }
