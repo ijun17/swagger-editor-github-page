@@ -14,13 +14,6 @@
     "type": "dir",
     "items": [
       {
-        "name": "asdf.json",
-        "path": "docs/asdf/asdf.json",
-        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/asdf/asdf.json",
-        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/asdf/asdf.json",
-        "type": "file"
-      },
-      {
         "name": "test.yaml",
         "path": "docs/asdf/test.yaml",
         "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/asdf/test.yaml",
