@@ -67,11 +67,17 @@ Now you can create, edit, and delete OpenAPI files directly from the UI.
 
 ## 🖼️ Screenshots
 
-### 📁 Folder & File Management
+### ✏️ API Editor
+
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/6fc3c827-1e58-400c-8984-8be1860ab5af" />
 
 ### 📄 API Viewer
 
-### ✏️ API Editor
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/6327158f-e929-461c-91cc-861f9f3d04dc" />
+
+### 📁 API File Management
+
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/47fc3ef7-4bf4-4e2e-8e18-8b7123c48cb3" />
 
 ---
 
