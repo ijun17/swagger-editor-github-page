@@ -172,9 +172,11 @@ export function useRenameFile() {
 
 export function useEditorUrl(path: string) {
   const { token } = useGitHubStore();
-  const url = token ? getApiContentUrl(path) : getContentUrl(path);
+  const apiUrl = getApiContentUrl(path);
+  const downloadUrl = getContentUrl(path);
+  const url = token ? apiUrl : downloadUrl;
   const headers: HeadersInit = token ? getApiContentHeaders(token) : {};
-  return { url, headers };
+  return { url, headers, apiUrl, downloadUrl };
 }
 
 // Initialize directory.json from scratch

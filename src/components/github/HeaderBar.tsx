@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import LoginModal from "./LoginModal";
 import { useGitHubStore, useUpdateFiles } from "@/api/github-client-hook";
 import Loader from "../common/Loader";
+import AlertModal from "../common/AlertModal";
 
 const SWAGGER_LOCALSTORAGE_ITEM = "swagger-editor-content";
 
@@ -57,6 +58,11 @@ export default function HeaderBar(props: Props) {
           </button>
         )}
         {updateFileMutation.isPending && <Loader />}
+        <AlertModal color="red">
+          {updateFileMutation.isPending
+            ? null
+            : updateFileMutation.isError && "Failed to reset directory.json"}
+        </AlertModal>
 
         {/* 로그인 로그아웃 버튼 */}
         <button

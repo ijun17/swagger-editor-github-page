@@ -40,14 +40,6 @@ export default function ApiDirectory({ handlePageChange }: Props) {
 
   return (
     <div className="min-w-2xl w-full h-full flex overflow-x-auto">
-      {isLoggedIn && (
-        <InitDirectoryModal
-          isOpen={openInitDirectoryModal}
-          isError={directoryQuery.isError}
-          onClose={() => setOpenInitDirectoryModal(false)}
-        />
-      )}
-
       {/* 좌측 패널 */}
       <div className="w-1/4 border-r border-gray-300 p-4 bg-white flex flex-col">
         <div className="flex justify-between items-center mb-4">
@@ -86,7 +78,6 @@ export default function ApiDirectory({ handlePageChange }: Props) {
           </button>
         )}
       </div>
-
       {/* 우측 패널 */}
       <div className="w-3/4 p-4 bg-white">
         {currentFolderName ? (
@@ -142,20 +133,26 @@ export default function ApiDirectory({ handlePageChange }: Props) {
           </div>
         )}
       </div>
-
       {/* 폴더 생성 모달 */}
       <CreateFileModal
         isOpen={openCreateFileModal}
         onClose={() => setOpenCreateFileModal(false)}
         folder={currentFolderName}
       />
-
       {/* 파일 삭제 모달 */}
       <DeleteFileModal
         isOpen={!!deletePath}
         onClose={() => setDeletePath(null)}
         path={deletePath}
       />
+      {/* directory.json 초기화 모달 */}
+      {isLoggedIn && (
+        <InitDirectoryModal
+          isOpen={openInitDirectoryModal}
+          isError={directoryQuery.isError}
+          onClose={() => setOpenInitDirectoryModal(false)}
+        />
+      )}
     </div>
   );
 }
