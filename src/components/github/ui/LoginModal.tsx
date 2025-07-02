@@ -33,27 +33,26 @@ export default function LoginModal({
             onSubmit(password);
           }}
           className="space-y-2 text-sm"
+          name="login"
         >
           <div>
-            <label className="block font-medium text-gray-700 mb-1">
-              username
-            </label>
+            <div className="block font-medium text-gray-700 mb-1">username</div>
             <input
               type="text"
               value="ijun17"
+              name="id"
               disabled
               className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-gray-600"
             />
           </div>
 
           <div>
-            <label className="block font-medium text-gray-700 mb-1">
-              password
-            </label>
+            <div className="block font-medium text-gray-700 mb-1">password</div>
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
+              name="password"
               placeholder="GitHub token"
               className="w-full px-3 py-2 border border-gray-300 rounded"
             />

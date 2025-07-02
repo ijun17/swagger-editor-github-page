@@ -1,58 +1,47 @@
+/* 스웨거 에디터 크기를 위한 스타일 */
 #swagger-editor {
   flex: 1;
 }
-
 #swagger-editor > div {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
-
 .swagger-editor {
   flex: 1;
   min-height: 0;
 }
-
 .swagger-editor > section {
   height: 100% !important;
 }
-
 #editor-wrapper {
   height: 100% !important;
 }
-
 .swagger-editor #ace-editor {
   height: 100% !important;
 }
-
 .dropzone {
   display: flex;
 }
-
 .swagger-editor .SplitPane {
   flex: 1;
   height: 100% !important;
   position: static !important;
 }
-
 .swagger-ui > div {
   padding-bottom: 1px;
 }
 
+/* 우측 패널 스크롤 안생기는 문제 */
 .Pane2 {
   overflow-y: auto;
 }
 
-.topbar-wrapper {
-  /* overflow-x: auto; */
-  white-space: nowrap;
-}
-
+/* 스크롤바 설정 */
 ::-webkit-scrollbar {
   width: 14px;
   height: 14px;
 }
-
 ::-webkit-scrollbar-thumb {
   outline: none;
   border-radius: 10px;
@@ -60,13 +49,19 @@
   box-shadow: inset 6px 6px 0 lightgray;
   min-height: 100px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   border: 4px solid transparent;
   box-shadow: inset 6px 6px 0 gray;
 }
-
 ::-webkit-scrollbar-track {
   box-shadow: none;
   background-color: transparent;
+}
+
+/* url 로딩 전 pet store 안보이게 */
+.swagger-editor-hide-code .ace_line_group {
+  display: none;
+}
+.swagger-editor-hide-code .ace_layer {
+  display: none;
 }

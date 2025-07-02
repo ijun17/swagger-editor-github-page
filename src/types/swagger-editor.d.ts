@@ -1,3 +1,10 @@
+type SwaggerEditorRequest = {
+  credentials: string;
+  headers: Record<string, string>;
+  loadSpec: boolean;
+  url: string;
+};
+
 type SwaggerEditorBundlePrameter = {
   dom_id: string; // 필수: Swagger UI를 렌더링할 DOM 요소의 ID
   layout?: "BaseLayout" | "StandaloneLayout"; // 사용할 레이아웃 컴포넌트, 기본값 'StandaloneLayout'
@@ -16,7 +23,7 @@ type SwaggerEditorBundlePrameter = {
     activated?: boolean;
     theme?: string;
   };
-  requestInterceptor?: (req: object) => object; // 요청 인터셉터 함수
+  requestInterceptor?: (req: SwaggerEditorRequest) => SwaggerEditorRequest; // 요청 인터셉터 함수
   responseInterceptor?: (res: object) => object; // 응답 인터셉터 함수
   supportedSubmitMethods?: string[]; // "Try it out" 지원 HTTP 메소드 목록
   withCredentials?: boolean; // CORS 요청 시 credentials 전송

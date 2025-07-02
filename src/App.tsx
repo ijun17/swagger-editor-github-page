@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import GithubBar from "./components/github/GithubBar";
-import SwaggerApiList from "./components/swagger/SwaggerApiList";
+import GithubBar from "./components/github/ui/GithubBar";
+import SwaggerApiList from "./components/github/ui/ApiList";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const SwaggerEditor = lazy(() => import("./components/swagger/SwaggerEditor"));
@@ -11,7 +11,7 @@ function App() {
   const [pageState, setPageState] = useState<
     "list" | "viewer" | "editor" | null
   >(null);
-  const [apiUrl, setApiUrl] = useState<string | null>(null);
+  const [path, setPath] = useState<string | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,15 +22,15 @@ function App() {
     if (hash == "#viewer") setPageState("viewer");
     if (hash == "#editor") setPageState("editor");
     const params = new URLSearchParams(location.search);
-    const decodedUrl = params.get("url");
-    if (decodedUrl) setApiUrl(decodeURIComponent(decodedUrl));
-    else setApiUrl(null);
+    const decodedPath = params.get("path");
+    if (decodedPath) setPath(decodeURIComponent(decodedPath));
+    else setPath(null);
   }, [location]);
 
   const handlePageChange = (pageState: "viewer" | "editor", apiUrl: string) => {
     navigate(
       window.location.pathname +
-        "?url=" +
+        "?path=" +
         encodeURIComponent(apiUrl) +
         "#" +
         pageState
@@ -38,21 +38,21 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col fixed w-full h-full max-w-full max-h-full">
-      <GithubBar edit={pageState === "editor"} url={apiUrl} />
-      <div className="flex-1 min-h-0">
+    <div className="flex flex-col w-full h-full max-w-full max-h-full">
+      <GithubBar edit={pageState === "editor"} path={path} />
+      <div className="flex-1 min-h-0 overflow-auto">
         {pageState === "list" && (
           <SwaggerApiList handlePageChange={handlePageChange} />
         )}
-        {pageState === "viewer" && apiUrl && (
-          <Suspense fallback={"로딩중"}>
-            <SwaggerViewer url={apiUrl} />
+        {pageState === "viewer" && path && (
+          <Suspense fallback={"Loading..."}>
+            <SwaggerViewer path={path} />
           </Suspense>
         )}
 
-        {pageState === "editor" && apiUrl && (
-          <Suspense fallback={"로딩중"}>
-            <SwaggerEditor url={apiUrl} />
+        {pageState === "editor" && path && (
+          <Suspense fallback={"Loading..."}>
+            <SwaggerEditor path={path} />
           </Suspense>
         )}
       </div>

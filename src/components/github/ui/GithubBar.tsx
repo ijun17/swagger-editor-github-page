@@ -1,19 +1,36 @@
 import { useEffect, useState } from "react";
 import LoginModal from "./LoginModal";
-import { checkLogin, login, logout } from "./github-api";
+import { useGitHubStore, useUpdateFiles } from "../lib/github-client-hook";
+import Loader from "../../shared/ui/Loader";
+
+const SWAGGER_LOCALSTORAGE_ITEM = "swagger-editor-content";
 
 type Props = {
   edit: boolean;
-  url: string | null;
+  path: string | null;
 };
 
 export default function GithubBar(props: Props) {
   const [open, setOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, login, logout } = useGitHubStore();
+  const updateFileMutation = useUpdateFiles();
 
   useEffect(() => {
-    setIsLoggedIn(checkLogin());
+    localStorage.removeItem(SWAGGER_LOCALSTORAGE_ITEM);
   }, []);
+
+  const handleSaveFile = () => {
+    if (!props.path) return;
+    try {
+      const content = localStorage.getItem(SWAGGER_LOCALSTORAGE_ITEM);
+      const path = props.path;
+      if (!path || !content)
+        throw Error(`Invalid path:${path} / content:${content}`);
+      updateFileMutation.mutate({ path, content });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div className="h-12 bg-zinc-800 flex justify-between items-center px-4">
@@ -25,17 +42,21 @@ export default function GithubBar(props: Props) {
       </a>
       <div className="flex gap-4 flex-shrink">
         {/* url */}
-        {props.url && (
+        {props.path && (
           <div className="bg-zinc-700 py-1 px-2 rounded-lg text-xs text-white truncate flex-shrink min-w-0">
-            {props.url}
+            {props.path.split("/").slice(1).join("/")}
           </div>
         )}
         {/* api 저장 버튼 */}
         {props.edit && isLoggedIn && (
-          <button className="bg-green-600 hover:bg-green-700 rounded text-xs p-1 text-white">
+          <button
+            className="bg-green-600 hover:bg-green-700 rounded text-xs p-1 text-white"
+            onClick={handleSaveFile}
+          >
             save
           </button>
         )}
+        {updateFileMutation.isPending && <Loader />}
 
         {/* 로그인 로그아웃 버튼 */}
         <button
@@ -44,7 +65,6 @@ export default function GithubBar(props: Props) {
             isLoggedIn
               ? () => {
                   logout();
-                  setIsLoggedIn(false);
                 }
               : () => setOpen(true)
           }
@@ -56,7 +76,6 @@ export default function GithubBar(props: Props) {
           onClose={() => setOpen(false)}
           onSubmit={(token) => {
             login(token);
-            setIsLoggedIn(true);
             setOpen(false);
           }}
         />
