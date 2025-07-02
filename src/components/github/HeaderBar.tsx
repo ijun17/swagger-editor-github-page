@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import LoginModal from "./LoginModal";
-import { useGitHubStore, useUpdateFiles } from "../lib/github-client-hook";
-import Loader from "../../shared/ui/Loader";
+import { useGitHubStore, useUpdateFiles } from "../../api/github-client-hook";
+import Loader from "../common/Loader";
 
 const SWAGGER_LOCALSTORAGE_ITEM = "swagger-editor-content";
 
@@ -10,7 +10,7 @@ type Props = {
   path: string | null;
 };
 
-export default function GithubBar(props: Props) {
+export default function HeaderBar(props: Props) {
   const [open, setOpen] = useState(false);
   const { isLoggedIn, login, logout } = useGitHubStore();
   const updateFileMutation = useUpdateFiles();

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useAddFile } from "../lib/github-client-hook";
-import Overlay from "../../shared/ui/Overlay";
-import Loader from "../../shared/ui/Loader";
+import { useAddFile } from "../../api/github-client-hook";
+import Overlay from "../common/Overlay";
+import Loader from "../common/Loader";
 
 const templates = [
   {

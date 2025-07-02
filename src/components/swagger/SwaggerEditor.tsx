@@ -3,7 +3,7 @@ import SwaggerEditorBundle from "swagger-editor-dist/swagger-editor-bundle";
 import SwaggerEditorStandalonePreset from "swagger-editor-dist/swagger-editor-standalone-preset";
 import "swagger-editor-dist/swagger-editor.css";
 import "./SwaggerEditor.css";
-import { useEditorUrl } from "../github/lib/github-client-hook";
+import { useEditorUrl } from "../../api/github-client-hook";
 
 declare global {
   interface Window {

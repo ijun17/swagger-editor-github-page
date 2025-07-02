@@ -3,17 +3,17 @@ import {
   useDirectoryJson,
   useGitHubStore,
   useInitDirectory,
-} from "../lib/github-client-hook";
-import Overlay from "../../shared/ui/Overlay";
+} from "../../api/github-client-hook";
+import Overlay from "../common/Overlay";
 import CreateFileModal from "./CreateFileModal";
 import DeleteFileModal from "./DeleteFileModal";
-import Loader from "../../shared/ui/Loader";
+import Loader from "../common/Loader";
 
 type Props = {
   handlePageChange: (pageState: "editor" | "viewer", url: string) => void;
 };
 
-export default function ApiList({ handlePageChange }: Props) {
+export default function ApiDirectory({ handlePageChange }: Props) {
   const [openCreateFileModal, setOpenCreateFileModal] = useState(false);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(
     null

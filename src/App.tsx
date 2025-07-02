@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import GithubBar from "./components/github/ui/GithubBar";
-import SwaggerApiList from "./components/github/ui/ApiList";
+import HeaderBar from "./components/github/HeaderBar";
+import ApiDirectory from "./components/github/ApiDirectory";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const SwaggerEditor = lazy(() => import("./components/swagger/SwaggerEditor"));
@@ -39,10 +39,10 @@ function App() {
 
   return (
     <div className="flex flex-col w-full h-full max-w-full max-h-full">
-      <GithubBar edit={pageState === "editor"} path={path} />
+      <HeaderBar edit={pageState === "editor"} path={path} />
       <div className="flex-1 min-h-0 overflow-auto">
         {pageState === "list" && (
-          <SwaggerApiList handlePageChange={handlePageChange} />
+          <ApiDirectory handlePageChange={handlePageChange} />
         )}
         {pageState === "viewer" && path && (
           <Suspense fallback={"Loading..."}>
