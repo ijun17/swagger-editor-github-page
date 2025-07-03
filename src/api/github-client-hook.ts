@@ -195,7 +195,11 @@ export function useInitDirectory() {
 }
 
 function invalidateDirectory(queryClient: ReturnType<typeof useQueryClient>) {
-  return () => queryClient.invalidateQueries({ queryKey: ["directoryJson"] });
+  return () =>
+    setTimeout(
+      () => queryClient.invalidateQueries({ queryKey: ["directoryJson"] }),
+      50
+    );
 }
 
 async function initDirectory(client: GitHubClient) {
