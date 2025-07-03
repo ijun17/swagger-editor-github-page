@@ -17,7 +17,7 @@ type Props = {
 
 function SwaggerEditor({ path }: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { url, headers } = useEditorUrl(path);
+  const { url, headers, downloadUrl } = useEditorUrl(path);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,8 +28,9 @@ function SwaggerEditor({ path }: Props) {
         layout: "StandaloneLayout",
         presets: [SwaggerEditorStandalonePreset],
         queryConfigEnabled: false,
-        url,
+        url: downloadUrl,
         requestInterceptor: (e) => {
+          e.url = url;
           e.headers = {
             ...e.headers,
             ...headers,

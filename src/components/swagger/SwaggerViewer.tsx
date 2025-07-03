@@ -8,12 +8,13 @@ type Params = {
 };
 
 export default function SwaggerViewer({ path }: Params) {
-  const { url, headers } = useEditorUrl(path);
+  const { url, headers, downloadUrl } = useEditorUrl(path);
   return (
     <div className="h-full overflow-y-auto">
       <SwaggerUI
-        url={url}
+        url={downloadUrl}
         requestInterceptor={(e) => {
+          e.url = url;
           e.headers = {
             ...e.headers,
             ...headers,
