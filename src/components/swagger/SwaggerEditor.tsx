@@ -3,7 +3,7 @@ import SwaggerEditorBundle from "swagger-editor-dist/swagger-editor-bundle";
 import SwaggerEditorStandalonePreset from "swagger-editor-dist/swagger-editor-standalone-preset";
 import "swagger-editor-dist/swagger-editor.css";
 import "./SwaggerEditor.css";
-import { useEditorUrl } from "@/api/github-client-hook";
+import { useEditorUrl, useGitHubStore } from "@/api/github-client-hook";
 
 declare global {
   interface Window {
@@ -17,6 +17,7 @@ type Props = {
 
 function SwaggerEditor({ path }: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
+  const { isLoggedIn } = useGitHubStore();
   const { url, headers, downloadUrl } = useEditorUrl(path);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,12 +46,14 @@ function SwaggerEditor({ path }: Props) {
       });
       window.editor = editor;
     }
-  }, [ref, url, headers]);
+  }, [ref, url, downloadUrl, headers]);
   return (
     <div
       id="swagger-editor"
       className={
-        "h-full min-w-2xl" + (isLoading ? " swagger-editor-hide-code" : "")
+        "h-full min-w-2xl" +
+        (isLoading ? " swagger-editor-hide-code" : "") +
+        (isLoggedIn ? "" : " not-logged-in")
       }
       ref={ref}
     ></div>

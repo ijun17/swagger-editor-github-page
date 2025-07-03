@@ -79,3 +79,8 @@
 button.opblock-summary-control {
   outline: none !important;
 }
+
+/* 인증 여부에 따라 스웨거 에디터 수정 가능/불가능 */
+.not-logged-in textarea {
+  display: none !important;
+}
