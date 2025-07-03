@@ -84,3 +84,16 @@ button.opblock-summary-control {
 .not-logged-in textarea {
   display: none !important;
 }
+
+/* 부드럽게 열리기 */
+.opblock.is-open > .no-margin {
+  animation: dropdownOpen 500ms ease forwards;
+}
+@keyframes dropdownOpen {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
