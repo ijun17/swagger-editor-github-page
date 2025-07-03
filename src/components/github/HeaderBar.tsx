@@ -34,12 +34,10 @@ export default function HeaderBar(props: Props) {
   };
 
   return (
-    <div className="h-12 bg-zinc-800 flex justify-between items-center px-4">
-      <a
-        className="font-bold text-lg text-green-600 flex-shrink-0"
-        href={window.location.pathname}
-      >
-        Swagger Editor
+    <div className="h-16 bg-zinc-800 flex justify-between items-center px-4">
+      <a className="flex-shrink-0" href={window.location.pathname}>
+        <div className="font-bold text-lg text-green-600">Swagger Editor</div>
+        <div className="font-bold text-xs text-zinc-400">on GitHub pages</div>
       </a>
       <div className="flex gap-4 flex-shrink">
         {/* url */}
