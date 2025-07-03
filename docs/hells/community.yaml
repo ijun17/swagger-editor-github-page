@@ -481,7 +481,8 @@ components:
           type: string
           
 servers:
+  - description: Server basePath
+    url: /api
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: /api
-    # url: https://virtserver.swaggerhub.com/non-b86/community/1
+    url: https://virtserver.swaggerhub.com/non-b86/community/1
