@@ -106,22 +106,28 @@ export default function ApiDirectory({ handlePageChange }: Props) {
                     <div className="flex gap-2 [&>*]:rounded-md [&>*]:text-xs [&>*]:font-bold [&>*]:border [&>*]:p-1 [&>*]:hover:translate-y-1 [&>*]:transition">
                       <button
                         className="text-green-600"
-                        onClick={() => handlePageChange("editor", file.path)}
-                      >
-                        edit
-                      </button>
-                      <button
-                        className="text-green-600"
                         onClick={() => handlePageChange("viewer", file.path)}
                       >
                         view
                       </button>
-                      <button
-                        className="text-red-500"
-                        onClick={() => setDeletePath(file.path)}
-                      >
-                        delete
-                      </button>
+                      {isLoggedIn && (
+                        <>
+                          <button
+                            className="text-green-600"
+                            onClick={() =>
+                              handlePageChange("editor", file.path)
+                            }
+                          >
+                            edit
+                          </button>
+                          <button
+                            className="text-red-500"
+                            onClick={() => setDeletePath(file.path)}
+                          >
+                            delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
