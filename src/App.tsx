@@ -2,6 +2,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import HeaderBar from "./components/github/HeaderBar";
 import ApiDirectory from "./components/github/ApiDirectory";
 import { useLocation, useNavigate } from "react-router-dom";
+import Loader from "./components/common/Loader";
 
 const SwaggerEditor = lazy(() => import("./components/swagger/SwaggerEditor"));
 const SwaggerViewer = lazy(() => import("./components/swagger/SwaggerViewer"));
@@ -45,13 +46,13 @@ function App() {
           <ApiDirectory handlePageChange={handlePageChange} />
         )}
         {pageState === "viewer" && path && (
-          <Suspense fallback={"Loading..."}>
+          <Suspense fallback={<Loader />}>
             <SwaggerViewer path={path} />
           </Suspense>
         )}
 
         {pageState === "editor" && path && (
-          <Suspense fallback={"Loading..."}>
+          <Suspense fallback={<Loader />}>
             <SwaggerEditor path={path} />
           </Suspense>
         )}

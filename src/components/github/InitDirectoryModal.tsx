@@ -26,7 +26,7 @@ export default function InitDirectoryModal(props: Props) {
               : "Do you want to reset the doc/directory.json file?"}
           </div>
           <button
-            className="w-full p-2 bg-green-600 rounded"
+            className="w-full p-2 bg-green-600 text-white rounded"
             onClick={() =>
               directoryMutation.mutate(undefined, {
                 onSuccess: props.onClose,
