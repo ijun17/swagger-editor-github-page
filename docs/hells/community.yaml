@@ -483,4 +483,5 @@ components:
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/non-b86/community/1
+    url: /api
+    # url: https://virtserver.swaggerhub.com/non-b86/community/1
