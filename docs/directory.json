@@ -12,6 +12,13 @@
         "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/abcd/test1.yaml",
         "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/abcd/test1.yaml",
         "type": "file"
+      },
+      {
+        "name": "test2.yaml",
+        "path": "docs/abcd/test2.yaml",
+        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/abcd/test2.yaml",
+        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/abcd/test2.yaml",
+        "type": "file"
       }
     ]
   },
