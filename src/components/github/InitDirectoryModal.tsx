@@ -1,7 +1,7 @@
 import { useInitDirectory } from "@/api/github-client-hook";
 import Overlay from "../common/Overlay";
 import Loader from "../common/Loader";
-import AlertModal from "../common/AlertModal";
+import Modal from "../common/Modal";
 
 type Props = {
   isOpen: boolean;
@@ -38,16 +38,22 @@ export default function InitDirectoryModal(props: Props) {
           </button>
         </div>
       </Overlay>
-      <AlertModal color="green">
-        {directoryMutation.isPending
-          ? null
-          : directoryMutation.isSuccess && "Successfully reset directory.json"}
-      </AlertModal>
-      <AlertModal color="red">
-        {directoryMutation.isPending
-          ? null
-          : directoryMutation.isError && "Failed to reset directory.json"}
-      </AlertModal>
+      <Modal
+        isOpen={directoryMutation.isError}
+        onClose={() => directoryMutation.reset()}
+      >
+        <div className="text-green-600 text-center">
+          Successfully reset directory.json
+        </div>
+      </Modal>
+      <Modal
+        isOpen={directoryMutation.isError}
+        onClose={() => directoryMutation.reset()}
+      >
+        <div className="text-red-600 text-center">
+          Failed to reset directory.json
+        </div>
+      </Modal>
     </>
   );
 }

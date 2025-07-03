@@ -1,11 +1,7 @@
-import AlertModal from "../common/AlertModal";
-import Loader from "../common/Loader";
-import Overlay from "../common/Overlay";
+import Modal from "../common/Modal";
 import { useDeleteFile } from "@/api/github-client-hook";
 
-interface Props {
-  isOpen: boolean;
-  onClose: () => void;
+interface Props extends React.ComponentProps<typeof Modal> {
   path: string | null;
 }
 
@@ -18,31 +14,41 @@ export default function DeleteFileModal({ isOpen, onClose, path }: Props) {
         onSuccess: onClose,
         onError: onClose,
       });
+    console.log("test");
   };
+  console.log(
+    deleteFileMutation.isError,
+    deleteFileMutation.isIdle,
+    deleteFileMutation.isPaused,
+    deleteFileMutation.isPending,
+    deleteFileMutation.isSuccess
+  );
 
   return (
     <>
-      <Overlay isOpen={isOpen} onClose={onClose}>
-        <div className="bg-white rounded p-4 max-w-xl w-[90%] h-40 flex flex-col justify-between">
-          <div className="text-center pt-6">
-            Do you want to delete <span className="text-red-600">{path}</span>?
-          </div>
-          <div className="flex justify-center gap-4 [&>*]:rounded [&>*]:p-1 [&>*]:flex-1">
-            <button onClick={onClose} className="border border-gray-400">
-              cancel
-            </button>
-            <button onClick={handleDelete} className="bg-red-600 text-white ">
-              delete
-            </button>
-          </div>
-          {deleteFileMutation.isPending && <Loader />}
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        isLoading={deleteFileMutation.isPending}
+      >
+        <div className="text-center pt-6">
+          Do you want to delete <span className="text-red-600">{path}</span>?
         </div>
-      </Overlay>
-      <AlertModal color="red">
-        {deleteFileMutation.isPending
-          ? null
-          : deleteFileMutation.isError && "Failed to delete file"}
-      </AlertModal>
+        <div className="flex justify-center gap-4 [&>*]:rounded [&>*]:p-1 [&>*]:flex-1">
+          <button onClick={onClose} className="border border-gray-400">
+            cancel
+          </button>
+          <button onClick={handleDelete} className="bg-red-600 text-white ">
+            delete
+          </button>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={deleteFileMutation.isError}
+        onClose={() => deleteFileMutation.reset()}
+      >
+        <div className="text-red-600 text-center">Failed to delete file</div>
+      </Modal>
     </>
   );
 }
