@@ -102,7 +102,7 @@ export function useAddFile() {
       await client.createOrUpdateFileContent(
         path,
         params.content,
-        `docs: Add ${path}`
+        `[API] Add ${path}`
       );
       // Update directory.json
       await initDirectory(client);
@@ -121,7 +121,7 @@ export function useUpdateFiles() {
     await client.createOrUpdateFileContent(
       path,
       content,
-      `docs: Update ${path}`
+      `[API] Update ${path}`
     );
   });
 }
@@ -133,7 +133,7 @@ export function useDeleteFile() {
   return useMutation(
     async (path: string) => {
       if (!client) throw new Error("Not logged in");
-      await client.deleteFile(path, `docs: Delete ${path}`);
+      await client.deleteFile(path, `[API] Delete ${path}`);
       await initDirectory(client);
     },
     {
@@ -157,9 +157,9 @@ export function useRenameFile() {
       await client.createOrUpdateFileContent(
         newPath,
         content,
-        `docs: Rename ${oldPath} → ${newPath}`
+        `[API] Rename ${oldPath} → ${newPath}`
       );
-      await client.deleteFile(oldPath, `docs: Rename ${oldPath} → ${newPath}`);
+      await client.deleteFile(oldPath, `[API] Rename ${oldPath} → ${newPath}`);
 
       // Update manifest
       await initDirectory(client);
@@ -207,6 +207,6 @@ async function initDirectory(client: GitHubClient) {
   await client.createOrUpdateFileContent(
     directory_path,
     JSON.stringify(dir, null, 2),
-    "docs: Update directory.json"
+    "[API] Update directory.json"
   );
 }
