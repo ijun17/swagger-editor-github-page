@@ -42,9 +42,7 @@ schemes:
 basePath: /api
 consumes:
   - application/json
-  - application/json
 produces:
-  - application/json
   - application/json
 securityDefinitions:
   Bearer:
@@ -654,46 +652,46 @@ paths:
       tags:
         - community
     parameters: []
-  /community/posts/pinned_posts/:
-    get:
-      operationId: community_posts_pinned_posts
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/PostList'
-      tags:
-        - community
-    parameters: []
+  # /community/posts/pinned_posts/:
+  #   get:
+  #     operationId: community_posts_pinned_posts
+  #     description: |-
+  #       게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
+  #       - /community/posts/{postId}
+  #       - /community/posts/pinned
+  #       - /community/posts/{postId}/pin
+  #     parameters:
+  #       - name: page
+  #         in: query
+  #         description: A page number within the paginated result set.
+  #         required: false
+  #         type: integer
+  #     responses:
+  #       '200':
+  #         description: ''
+  #         schema:
+  #           required:
+  #             - count
+  #             - results
+  #           type: object
+  #           properties:
+  #             count:
+  #               type: integer
+  #             next:
+  #               type: string
+  #               format: uri
+  #               x-nullable: true
+  #             previous:
+  #               type: string
+  #               format: uri
+  #               x-nullable: true
+  #             results:
+  #               type: array
+  #               items:
+  #                 $ref: '#/definitions/PostList'
+  #     tags:
+  #       - community
+  #   parameters: []
   /community/posts/{id}/:
     get:
       operationId: community_posts_read
