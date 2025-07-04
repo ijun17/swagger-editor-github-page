@@ -1,2966 +1,3970 @@
-swagger: '2.0'
-info:
-  title: Hells Gym Management API
-  description: |2-
-
-            # Hells Gym 관리 시스템 API
-
-            헬스장 관리를 위한 종합 API 시스템입니다.
-
-            ## 주요 기능
-            - 👥 **사용자 관리**: 회원, 트레이너, 매니저, 관리자 권한 관리
-            - 🎓 **수업 관리**: 클래스 생성, 스케줄 관리, 예약 시스템  
-            - 🛒 **상점 관리**: 티켓 상품 판매, 잔액 관리, 구매 시스템
-            - 💬 **커뮤니티**: 게시판, 댓글 시스템
-            - 💳 **예약 관리**: 수업 예약, 취소, 관리
-            - 💰 **급여 관리**: 트레이너 급여 계산, 월별 정산
-
-            ## 인증 방식
-            JWT(JSON Web Token) 기반 인증을 사용합니다.
-            
-            ## API 버전
-            현재 버전: v1.0.0
-            
-            ## 권한 레벨
-            - **MEMBER**: 일반 회원
-            - **TRAINER**: 트레이너  
-            - **MANAGER**: 매니저
-            - **ADMIN**: 시스템 관리자
-            
-  termsOfService: https://hellsgym.com/terms/
-  contact:
-    name: Hells Gym API Support
-    url: https://hellsgym.com/support/
-    email: api-support@hellsgym.com
-  license:
-    name: MIT License
-    url: https://opensource.org/licenses/MIT
-  version: v1.0.0
-host: api.hellsgym.com
-schemes:
-  - https
-basePath: /api
-consumes:
-  - application/json
-produces:
-  - application/json
-securityDefinitions:
-  Bearer:
-    type: apiKey
-    name: Authorization
-    in: header
-    description: 'JWT 토큰을 입력하세요. 예: Bearer eyJ...'
-security:
-  - Bearer: []
-paths:
-  /admin/users:
-    get:
-      operationId: admin_users_list
-      summary: 전체 사용자 목록 조회
-      description: 관리자만 조회 가능한 전체 사용자 목록을 반환합니다.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/User'
-      tags:
-        - admin
-    parameters: []
-  /admin/users/{userId}:
-    get:
-      operationId: admin_users_read
-      summary: 사용자 상세 조회 (관리자)
-      description: 특정 사용자의 상세 정보를 조회합니다. (관리자만 가능)
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/ManagerUser'
-      tags:
-        - admin
-    put:
-      operationId: admin_users_update
-      summary: 사용자 상세 정보 조회 및 수정 뷰 (관리자 전용).
-      description: |-
-        사용자의 상세 정보를 조회하고 수정할 수 있습니다.
-        티켓 정보도 함께 관리할 수 있습니다.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ManagerUser'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/ManagerUser'
-      tags:
-        - admin
-    patch:
-      operationId: admin_users_partial_update
-      summary: 사용자 정보 부분 수정 (관리자)
-      description: 특정 사용자의 정보를 부분적으로 수정합니다. (관리자만 가능)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/User'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/User'
-      tags:
-        - admin
-    parameters:
-      - name: userId
-        in: path
-        required: true
-        type: string
-  /auth/login:
-    post:
-      operationId: auth_login_create
-      summary: 로그인
-      description: 사용자 로그인 및 JWT 토큰 발급
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/UserLogin'
-      responses:
-        '200':
-          description: 로그인 성공
-          schema:
-            type: object
-            properties:
-              accessToken:
-                type: string
-              user:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  nickname:
-                    type: string
-                  tier:
-                    type: string
-                  role:
-                    type: string
-      tags:
-        - auth
-    parameters: []
-  /auth/register:
-    post:
-      operationId: auth_register_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/UserSignup'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/UserSignup'
-      tags:
-        - auth
-    parameters: []
-  /auth/token/refresh:
-    post:
-      operationId: auth_token_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TokenRefresh'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/TokenRefresh'
-      tags:
-        - auth
-    parameters: []
-  /classes/:
-    get:
-      operationId: classes_list
-      description: ''
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Class'
-      tags:
-        - classes
-    post:
-      operationId: classes_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Class'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Class'
-      tags:
-        - classes
-    parameters: []
-  /classes/create/:
-    post:
-      operationId: classes_create_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ClassCreate'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/ClassCreate'
-      tags:
-        - classes
-    parameters: []
-  /classes/{classId}/delete/:
-    delete:
-      operationId: classes_delete_delete
-      summary: 수업 삭제
-      description: 수업과 관련 일정을 삭제합니다. (소프트 삭제)
-      parameters: []
-      responses:
-        '200':
-          description: 수업 삭제 성공
-      tags:
-        - classes
-    parameters:
-      - name: classId
-        in: path
-        required: true
-        type: string
-  /classes/{id}/:
-    get:
-      operationId: classes_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Class'
-      tags:
-        - classes
-    put:
-      operationId: classes_update
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Class'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Class'
-      tags:
-        - classes
-    patch:
-      operationId: classes_partial_update
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Class'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Class'
-      tags:
-        - classes
-    delete:
-      operationId: classes_delete
-      description: ''
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - classes
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this class.
-        required: true
-        type: integer
-  /community/board/{boardId}/posts/:
-    get:
-      operationId: community_board_posts_list
-      description: |-
-        특정 게시판의 게시글 목록 조회 및 생성을 담당합니다.
-        - /community/board/{boardId}/posts/
-      parameters:
-        - name: cursor
-          in: query
-          description: The pagination cursor value.
-          required: false
-          type: string
-        - name: limit
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - results
-            type: object
-            properties:
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/PostList'
-      tags:
-        - community
-    post:
-      operationId: community_board_posts_create
-      description: |-
-        특정 게시판의 게시글 목록 조회 및 생성을 담당합니다.
-        - /community/board/{boardId}/posts/
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PostList'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/PostList'
-      tags:
-        - community
-    parameters:
-      - name: boardId
-        in: path
-        required: true
-        type: string
-  /community/comments/:
-    get:
-      operationId: community_comments_list
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: cursor
-          in: query
-          description: The pagination cursor value.
-          required: false
-          type: string
-        - name: limit
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - results
-            type: object
-            properties:
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Comment'
-      tags:
-        - community
-    post:
-      operationId: community_comments_create
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Comment'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    parameters: []
-  /community/comments/{id}/:
-    get:
-      operationId: community_comments_read
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    put:
-      operationId: community_comments_update
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Comment'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    patch:
-      operationId: community_comments_partial_update
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Comment'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    delete:
-      operationId: community_comments_delete
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - community
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /community/posts/:
-    get:
-      operationId: community_posts_list
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Post'
-      tags:
-        - community
-    post:
-      operationId: community_posts_create
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Post'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Post'
-      tags:
-        - community
-    parameters: []
-  /community/posts/pinned/:
-    get:
-      operationId: community_posts_pinned_posts
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/PostList'
-      tags:
-        - community
-    parameters: []
-  # /community/posts/pinned_posts/:
-  #   get:
-  #     operationId: community_posts_pinned_posts
-  #     description: |-
-  #       게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-  #       - /community/posts/{postId}
-  #       - /community/posts/pinned
-  #       - /community/posts/{postId}/pin
-  #     parameters:
-  #       - name: page
-  #         in: query
-  #         description: A page number within the paginated result set.
-  #         required: false
-  #         type: integer
-  #     responses:
-  #       '200':
-  #         description: ''
-  #         schema:
-  #           required:
-  #             - count
-  #             - results
-  #           type: object
-  #           properties:
-  #             count:
-  #               type: integer
-  #             next:
-  #               type: string
-  #               format: uri
-  #               x-nullable: true
-  #             previous:
-  #               type: string
-  #               format: uri
-  #               x-nullable: true
-  #             results:
-  #               type: array
-  #               items:
-  #                 $ref: '#/definitions/PostList'
-  #     tags:
-  #       - community
-  #   parameters: []
-  /community/posts/{id}/:
-    get:
-      operationId: community_posts_read
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Post'
-      tags:
-        - community
-    put:
-      operationId: community_posts_update
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Post'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Post'
-      tags:
-        - community
-    patch:
-      operationId: community_posts_partial_update
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Post'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Post'
-      tags:
-        - community
-    delete:
-      operationId: community_posts_delete
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - community
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this post.
-        required: true
-        type: integer
-  /community/posts/{id}/pin/:
-    patch:
-      operationId: community_posts_pin
-      description: |-
-        게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.
-        - /community/posts/{postId}
-        - /community/posts/pinned
-        - /community/posts/{postId}/pin
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Post'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Post'
-      tags:
-        - community
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this post.
-        required: true
-        type: integer
-  /community/posts/{post_pk}/comments/:
-    get:
-      operationId: community_posts_comments_list
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: cursor
-          in: query
-          description: The pagination cursor value.
-          required: false
-          type: string
-        - name: limit
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - results
-            type: object
-            properties:
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Comment'
-      tags:
-        - community
-    post:
-      operationId: community_posts_comments_create
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Comment'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    parameters:
-      - name: post_pk
-        in: path
-        required: true
-        type: string
-  /community/posts/{post_pk}/comments/{id}/:
-    get:
-      operationId: community_posts_comments_read
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    put:
-      operationId: community_posts_comments_update
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Comment'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    patch:
-      operationId: community_posts_comments_partial_update
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Comment'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Comment'
-      tags:
-        - community
-    delete:
-      operationId: community_posts_comments_delete
-      description: |-
-        댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.
-        - /community/posts/{postId}/comments (목록 조회, 생성)
-        - /community/comments/{commentId} (수정, 삭제)
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - community
-    parameters:
-      - name: post_pk
-        in: path
-        required: true
-        type: string
-      - name: id
-        in: path
-        required: true
-        type: string
-  /payroll/calculate/:
-    post:
-      operationId: payroll_calculate_create
-      summary: 월별 급여 정산 실행 API
-      description: 특정 연/월의 모든 트레이너 급여를 계산하여 DB에 저장합니다. 연/월을 지정하지 않으면 지난달을 기준으로 자동 계산됩니다.
-      parameters:
-        - name: year
-          in: query
-          description: 계산할 연도 (YYYY)
-          type: integer
-        - name: month
-          in: query
-          description: 계산할 월 (1-12)
-          type: integer
-      responses:
-        '200':
-          description: 계산 성공
-        '400':
-          description: 잘못된 요청 또는 계산 중 오류 발생
-      tags:
-        - payroll
-    parameters: []
-  /reservations/:
-    post:
-      operationId: reservations_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ReservationCreate'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/ReservationCreate'
-      tags:
-        - reservations
-    parameters: []
-  /reservations/me:
-    get:
-      operationId: reservations_me_list
-      summary: 내 예약 목록 조회
-      description: 로그인한 회원의 예약 목록을 조회합니다.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Reservation'
-      tags:
-        - reservations
-    parameters: []
-  /reservations/{reservationId}:
-    delete:
-      operationId: reservations_delete
-      description: ''
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - reservations
-    parameters:
-      - name: reservationId
-        in: path
-        required: true
-        type: string
-  /schedules/:
-    get:
-      operationId: schedules_list
-      summary: 수업 일정 목록 조회
-      description: 월별 수업 일정 목록을 조회합니다.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-        - name: month
-          in: query
-          description: '월 (예: 2023-05)'
-          type: string
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Schedule'
-      tags:
-        - schedules
-    parameters: []
-  /schedules/{scheduleId}:
-    get:
-      operationId: schedules_read
-      summary: 수업 일정 상세 조회
-      description: 특정 수업 일정의 상세 정보를 조회합니다.
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/ScheduleDetail'
-      tags:
-        - schedules
-    parameters:
-      - name: scheduleId
-        in: path
-        required: true
-        type: string
-  /shop/balance-history/:
-    get:
-      operationId: shop_balance-history_list
-      description: ''
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/BalanceHistory'
-      tags:
-        - shop
-    parameters: []
-  /shop/balance-history/{id}/:
-    get:
-      operationId: shop_balance-history_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/BalanceHistory'
-      tags:
-        - shop
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /shop/balances/:
-    get:
-      operationId: shop_balances_list
-      description: |-
-        잔액 관리 API
-        - GET /api/shop/balances/my_balance/: 내 잔액 조회
-        - POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/UserBalance'
-      tags:
-        - shop
-    parameters: []
-  /shop/balances/add-balance/:
-    post:
-      operationId: shop_balances_add_balance
-      summary: 잔액 충전 (관리자 전용)
-      description: 관리자가 특정 사용자에게 잔액을 충전합니다.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/BalanceAdd'
-      responses:
-        '200':
-          description: 잔액 충전 성공
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              message:
-                type: string
-              new_balance:
-                type: string
-        '400':
-          description: 잘못된 요청 데이터
-        '403':
-          description: 권한 없음 (관리자 전용)
-      tags:
-        - 💰 잔액 관리
-    parameters: []
-  /shop/balances/my-balance/:
-    get:
-      operationId: shop_balances_my_balance
-      summary: 내 잔액 조회
-      description: 현재 로그인한 사용자의 잔액 정보를 조회합니다.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: 잔액 조회 성공
-          schema:
-            type: object
-            properties:
-              balance:
-                description: 잔액 (숫자)
-                type: number
-              formatted_balance:
-                description: '포맷된 잔액 (예: 100,000원)'
-                type: string
-        '401':
-          description: 인증 필요
-      tags:
-        - 💰 잔액 관리
-    parameters: []
-  /shop/balances/{id}/:
-    get:
-      operationId: shop_balances_read
-      description: |-
-        잔액 관리 API
-        - GET /api/shop/balances/my_balance/: 내 잔액 조회
-        - POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/UserBalance'
-      tags:
-        - shop
-    put:
-      operationId: shop_balances_update
-      description: |-
-        잔액 관리 API
-        - GET /api/shop/balances/my_balance/: 내 잔액 조회
-        - POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/UserBalance'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/UserBalance'
-      tags:
-        - shop
-    patch:
-      operationId: shop_balances_partial_update
-      description: |-
-        잔액 관리 API
-        - GET /api/shop/balances/my_balance/: 내 잔액 조회
-        - POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/UserBalance'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/UserBalance'
-      tags:
-        - shop
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /shop/products/:
-    get:
-      operationId: shop_products_list
-      summary: 상품 목록 조회
-      description: 활성화된 티켓 상품 목록을 조회합니다.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-        - name: ticket_type
-          in: query
-          description: 티켓 타입 필터 (daily, weekly_2, weekly_3, weekly_5)
-          type: string
-          enum:
-            - daily
-            - weekly_2
-            - weekly_3
-            - weekly_5
-        - name: duration
-          in: query
-          description: 기간 필터 (30, 60, 90일)
-          type: integer
-          enum:
-            - 30
-            - 60
-            - 90
-      responses:
-        '200':
-          description: 상품 목록 조회 성공
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              count:
-                type: integer
-              results:
-                type: array
-                items:
-                  type: object
-        '401':
-          description: 인증 필요
-      tags:
-        - 🎫 상품 관리
-    post:
-      operationId: shop_products_create
-      summary: 상품 생성
-      description: 새로운 티켓 상품을 생성합니다. (관리자 전용)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TicketProduct'
-      responses:
-        '201':
-          description: 상품 생성 성공
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              message:
-                type: string
-              data:
-                type: object
-        '400':
-          description: 잘못된 요청 데이터
-        '403':
-          description: 권한 없음 (관리자 전용)
-      tags:
-        - 🎫 상품 관리
-    parameters: []
-  /shop/products/{id}/:
-    get:
-      operationId: shop_products_read
-      description: 상품 하나 조회
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/TicketProduct'
-      tags:
-        - shop
-    put:
-      operationId: shop_products_update
-      description: 상품 전체 수정 (관리자만)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TicketProduct'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/TicketProduct'
-      tags:
-        - shop
-    patch:
-      operationId: shop_products_partial_update
-      description: 상품 부분 수정 (관리자만)
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TicketProduct'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/TicketProduct'
-      tags:
-        - shop
-    delete:
-      operationId: shop_products_delete
-      description: 상품 삭제 (관리자만)
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - shop
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this 티켓 상품.
-        required: true
-        type: integer
-  /shop/purchases/:
-    get:
-      operationId: shop_purchases_list
-      summary: 💳 구매 관리 API
-      description: |-
-        티켓 상품 구매 및 구매 내역을 관리하는 API입니다.
-        - 구매 시 잔액에서 자동 차감
-        - 구매 완료 시 자동 티켓 발급
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Purchase'
-      tags:
-        - shop
-    post:
-      operationId: shop_purchases_create
-      summary: 티켓 구매
-      description: |
-
-        티켓 상품을 구매합니다.
-
-        - 사용자 잔액에서 자동 차감
-        - 구매 완료 시 티켓 자동 발급
-        - 잔액이 부족하면 구매 실패
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PurchaseCreate'
-      responses:
-        '201':
-          description: 구매 성공
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              message:
-                type: string
-              purchase_id:
-                type: integer
-              remaining_balance:
-                type: string
-        '400':
-          description: 구매 실패 (잔액 부족, 잘못된 데이터 등)
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              error_code:
-                type: string
-              message:
-                type: string
-        '401':
-          description: 인증 필요
-      tags:
-        - 💳 구매 관리
-    parameters: []
-  /shop/purchases/{id}/:
-    get:
-      operationId: shop_purchases_read
-      summary: 💳 구매 관리 API
-      description: |-
-        티켓 상품 구매 및 구매 내역을 관리하는 API입니다.
-        - 구매 시 잔액에서 자동 차감
-        - 구매 완료 시 자동 티켓 발급
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Purchase'
-      tags:
-        - shop
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /shop/tickets/:
-    get:
-      operationId: shop_tickets_list
-      description: ''
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/ShopTicket'
-      tags:
-        - shop
-    parameters: []
-  /shop/tickets/my-tickets/:
-    get:
-      operationId: shop_tickets_my_tickets
-      description: 내 티켓 조회
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/ShopTicket'
-      tags:
-        - shop
-    parameters: []
-  /shop/tickets/{id}/:
-    get:
-      operationId: shop_tickets_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/ShopTicket'
-      tags:
-        - shop
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /tier/:
-    get:
-      operationId: tier_list
-      summary: 티어 질문 목록 조회
-      description: 티어 결정을 위한 질문 목록을 조회합니다.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: 질문 목록
-          schema:
-            type: object
-            properties:
-              questions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    question:
-                      type: string
-                    answers:
-                      type: array
-                      items:
-                        type: string
-      tags:
-        - tier
-    parameters: []
-  /tier/answer:
-    post:
-      operationId: tier_answer_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TierAnswer'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/TierAnswer'
-      tags:
-        - tier
-    parameters: []
-  /trainers/:
-    get:
-      operationId: trainers_list
-      description: ''
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Trainer'
-      tags:
-        - trainers
-    parameters: []
-  /users/me:
-    get:
-      operationId: users_me_read
-      summary: 내 프로필 조회
-      description: 로그인한 사용자의 프로필 정보를 조회합니다.
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/UserDetail'
-      tags:
-        - users
-    parameters: []
-  /users/me/password/reset:
-    post:
-      operationId: users_me_password_reset_create
-      summary: 비밀번호 재설정 인증 및 변경
-      description: 인증번호를 확인하고 새로운 비밀번호로 변경합니다.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            required:
-              - username
-              - auth_code
-              - new_password
-            type: object
-            properties:
-              username:
-                description: 사용자명
-                type: string
-              auth_code:
-                description: 인증번호
-                type: string
-              new_password:
-                description: 새 비밀번호
-                type: string
-      responses:
-        '200':
-          description: 비밀번호 변경 성공
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              message:
-                type: string
-      tags:
-        - users
-    parameters: []
-  /users/me/password/reset-request:
-    post:
-      operationId: users_me_password_reset-request_create
-      summary: 비밀번호 재설정 인증번호 발송
-      description: 비밀번호 재설정을 위한 SMS 인증번호를 발송합니다.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            required:
-              - username
-            type: object
-            properties:
-              username:
-                description: 사용자명
-                type: string
-      responses:
-        '200':
-          description: 인증번호 발송 성공
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              message:
-                type: string
-      tags:
-        - users
-    parameters: []
-definitions:
-  UserTicket:
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      userId:
-        title: User id
-        type: integer
-        readOnly: true
-      userName:
-        title: User name
-        type: string
-        readOnly: true
-        minLength: 1
-      expiredDatetime:
-        title: Expired datetime
-        type: string
-        format: date-time
-        readOnly: true
-      usableCount:
-        title: Usable count
-        type: integer
-        readOnly: true
-      isExpired:
-        title: Is expired
-        type: boolean
-        readOnly: true
-      isUsable:
-        title: Is usable
-        type: boolean
-        readOnly: true
-      daysUntilExpiry:
-        title: Days until expiry
-        type: integer
-        readOnly: true
-      expiryStatus:
-        title: Expiry status
-        type: string
-        readOnly: true
-        minLength: 1
-      createdAt:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      updatedAt:
-        title: Updated at
-        type: string
-        format: date-time
-        readOnly: true
-    x-nullable: true
-  User:
-    type: object
-    properties:
-      userId:
-        title: User id
-        type: integer
-        readOnly: true
-      username:
-        title: 사용자 이름
-        description: 150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.
-        type: string
-        readOnly: true
-        minLength: 1
-      nickname:
-        title: 닉네임
-        description: 시스템에서 표시될 닉네임
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      name:
-        title: 실명
-        description: 사용자의 실제 이름
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      displayName:
-        title: Display name
-        type: string
-        readOnly: true
-        minLength: 1
-      phoneNumber:
-        title: Phone number
-        type: string
-        readOnly: true
-        minLength: 1
-      birthDate:
-        title: Birth date
-        type: string
-        format: date
-        readOnly: true
-        x-nullable: true
-      age:
-        title: Age
-        type: integer
-        readOnly: true
-        x-nullable: true
-      gender:
-        title: 성별
-        type: string
-        enum:
-          - MALE
-          - FEMALE
-        x-nullable: true
-      role:
-        title: Role
-        type: string
-        readOnly: true
-        minLength: 1
-      roleDisplay:
-        title: Role display
-        type: string
-        readOnly: true
-        minLength: 1
-      tier:
-        title: Tier
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      tierDisplay:
-        title: Tier display
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      isTrainerOrAbove:
-        title: Is trainer or above
-        type: boolean
-        readOnly: true
-      isManagerOrAbove:
-        title: Is manager or above
-        type: boolean
-        readOnly: true
-      activeTicket:
-        $ref: '#/definitions/UserTicket'
-      metadata:
-        title: 메타데이터
-        description: 추가 정보를 저장하는 JSON 필드
-        type: object
-  ManagerUser:
-    type: object
-    properties:
-      userId:
-        title: User id
-        type: integer
-        readOnly: true
-      username:
-        title: 사용자 이름
-        description: 150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.
-        type: string
-        readOnly: true
-        minLength: 1
-      nickname:
-        title: Nickname
-        type: string
-      name:
-        title: Name
-        type: string
-      displayName:
-        title: Display name
-        type: string
-        readOnly: true
-        minLength: 1
-      phoneNumber:
-        title: Phone number
-        type: string
-      birthDate:
-        title: Birth date
-        type: string
-        format: date
-        x-nullable: true
-      age:
-        title: Age
-        type: integer
-        readOnly: true
-        x-nullable: true
-      gender:
-        title: Gender
-        type: string
-        enum:
-          - MALE
-          - FEMALE
-        x-nullable: true
-      role:
-        title: Role
-        type: string
-        enum:
-          - MEMBER
-          - TRAINER
-          - MANAGER
-          - ADMIN
-      roleDisplay:
-        title: Role display
-        type: string
-        readOnly: true
-        minLength: 1
-      tier:
-        title: Tier
-        type: string
-        enum:
-          - IRON
-          - BRONZE
-          - SILVER
-          - GOLD
-          - PLATINUM
-          - DIAMOND
-          - MASTER
-          - CHALLENGER
-        x-nullable: true
-      tierDisplay:
-        title: Tier display
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      isTrainerOrAbove:
-        title: Is trainer or above
-        type: boolean
-        readOnly: true
-      isManagerOrAbove:
-        title: Is manager or above
-        type: boolean
-        readOnly: true
-      activeTicket:
-        $ref: '#/definitions/UserTicket'
-      metadata:
-        title: Metadata
-        type: object
-  UserLogin:
-    required:
-      - username
-      - password
-    type: object
-    properties:
-      username:
-        title: Username
-        type: string
-        minLength: 1
-      password:
-        title: Password
-        type: string
-        minLength: 1
-  UserSignup:
-    required:
-      - username
-      - password
-      - password2
-    type: object
-    properties:
-      username:
-        title: Username
-        type: string
-        maxLength: 150
-        minLength: 1
-      password:
-        title: Password
-        type: string
-        minLength: 8
-      password2:
-        title: Password2
-        type: string
-        minLength: 8
-      name:
-        title: Name
-        type: string
-        maxLength: 10
-      nickname:
-        title: Nickname
-        type: string
-        maxLength: 50
-      phoneNumber:
-        title: Phone number
-        type: string
-        maxLength: 20
-      birthDate:
-        title: Birth date
-        type: string
-        format: date
-        x-nullable: true
-      gender:
-        title: Gender
-        type: string
-        enum:
-          - MALE
-          - FEMALE
-        x-nullable: true
-      metadata:
-        title: Metadata
-        type: object
-        default: {}
-  TokenRefresh:
-    required:
-      - refresh
-    type: object
-    properties:
-      refresh:
-        title: Refresh
-        type: string
-        minLength: 1
-      access:
-        title: Access
-        type: string
-        readOnly: true
-        minLength: 1
-  Class:
-    required:
-      - name
-      - description
-      - trainer
-    type: object
-    properties:
-      classId:
-        title: Classid
-        type: integer
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        maxLength: 100
-        minLength: 1
-      description:
-        title: Description
-        type: string
-        minLength: 1
-      capacity:
-        title: Capacity
-        type: integer
-        maximum: 4294967295
-        minimum: 0
-      trainer:
-        title: Trainer
-        type: integer
-      metadata:
-        title: Metadata
-        type: object
-  ScheduleRule:
-    required:
-      - weekday
-      - startTime
-      - endTime
-    type: object
-    properties:
-      weekday:
-        type: array
-        items:
-          type: integer
-          maximum: 7
-          minimum: 1
-      startTime:
-        title: Starttime
-        type: string
-      endTime:
-        title: Endtime
-        type: string
-  ClassCreate:
-    required:
-      - className
-      - trainerId
-      - maxMemberCount
-      - tier
-      - startDate
-      - endDate
-      - description
-      - scheduleRules
-    type: object
-    properties:
-      className:
-        title: Classname
-        type: string
-        minLength: 1
-      trainerId:
-        title: Trainerid
-        type: integer
-      maxMemberCount:
-        title: Maxmembercount
-        type: integer
-      tier:
-        title: Tier
-        type: string
-        minLength: 1
-      startDate:
-        title: Startdate
-        type: string
-        format: date
-      endDate:
-        title: Enddate
-        type: string
-        format: date
-      fixedMemberIds:
-        type: array
-        items:
-          type: integer
-        default: []
-      description:
-        title: Description
-        type: string
-        minLength: 1
-      scheduleRules:
-        type: array
-        items:
-          $ref: '#/definitions/ScheduleRule'
-  Author:
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      nickname:
-        title: 닉네임
-        description: 시스템에서 표시될 닉네임
-        type: string
-        maxLength: 50
-        x-nullable: true
-      tier:
-        title: 등급
-        description: 사용자의 운동 등급
-        type: string
-        enum:
-          - IRON
-          - BRONZE
-          - SILVER
-          - GOLD
-          - PLATINUM
-          - DIAMOND
-          - MASTER
-          - CHALLENGER
-        x-nullable: true
-  PostList:
-    required:
-      - title
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      title:
-        title: Title
-        type: string
-        maxLength: 255
-        minLength: 1
-      author:
-        $ref: '#/definitions/Author'
-      pinned:
-        title: Pinned
-        type: boolean
-      createdAt:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      updatedAt:
-        title: Updated at
-        type: string
-        format: date-time
-        readOnly: true
-      commentCount:
-        title: Comment count
-        type: integer
-        readOnly: true
-  Comment:
-    required:
-      - content
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      parent:
-        title: Parent
-        type: integer
-        readOnly: true
-      parentId:
-        title: Parent id
-        type: integer
-        x-nullable: true
-      content:
-        title: Content
-        type: string
-        minLength: 1
-      author:
-        $ref: '#/definitions/Author'
-      createdAt:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      updatedAt:
-        title: Updated at
-        type: string
-        format: date-time
-        readOnly: true
-      hasMoreReplies:
-        title: Has more replies
-        type: string
-        readOnly: true
-      replies:
-        title: Replies
-        type: string
-        readOnly: true
-  Post:
-    required:
-      - title
-      - content
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      title:
-        title: Title
-        type: string
-        maxLength: 255
-        minLength: 1
-      content:
-        title: Content
-        type: string
-        minLength: 1
-      author:
-        $ref: '#/definitions/Author'
-      pinned:
-        title: Pinned
-        type: boolean
-      createdAt:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      updatedAt:
-        title: Updated at
-        type: string
-        format: date-time
-        readOnly: true
-  ReservationCreate:
-    required:
-      - scheduleId
-    type: object
-    properties:
-      scheduleId:
-        title: Scheduleid
-        type: integer
-  Reservation:
-    required:
-      - scheduleId
-      - classId
-      - className
-      - date
-      - startTime
-      - endTime
-      - trainerId
-      - trainerName
-      - maxMemberCount
-      - currentMemberCount
-    type: object
-    properties:
-      reservationId:
-        title: Reservationid
-        type: integer
-        readOnly: true
-      scheduleId:
-        title: Scheduleid
-        type: integer
-      classId:
-        title: Classid
-        type: integer
-      className:
-        title: Classname
-        type: string
-        minLength: 1
-      date:
-        title: Date
-        type: string
-        format: date
-      startTime:
-        title: Starttime
-        type: string
-      endTime:
-        title: Endtime
-        type: string
-      trainerId:
-        title: Trainerid
-        type: integer
-      trainerName:
-        title: Trainername
-        type: string
-        minLength: 1
-      maxMemberCount:
-        title: Maxmembercount
-        type: integer
-      currentMemberCount:
-        title: Currentmembercount
-        type: integer
-  Schedule:
-    required:
-      - classId
-      - className
-      - date
-      - startTime
-      - endTime
-      - trainerId
-      - trainerName
-      - maxMemberCount
-    type: object
-    properties:
-      scheduleId:
-        title: Scheduleid
-        type: integer
-        readOnly: true
-      classId:
-        title: Classid
-        type: integer
-      className:
-        title: Classname
-        type: string
-        minLength: 1
-      date:
-        title: Date
-        type: string
-        format: date
-      startTime:
-        title: Starttime
-        type: string
-      endTime:
-        title: Endtime
-        type: string
-      trainerId:
-        title: Trainerid
-        type: integer
-      trainerName:
-        title: Trainername
-        type: string
-        minLength: 1
-      maxMemberCount:
-        title: Maxmembercount
-        type: integer
-      currentMemberCount:
-        title: Currentmembercount
-        type: integer
-        readOnly: true
-  ScheduleDetail:
-    required:
-      - classId
-      - className
-      - date
-      - startTime
-      - endTime
-      - trainerId
-      - trainerName
-      - maxMemberCount
-      - description
-    type: object
-    properties:
-      classId:
-        title: Classid
-        type: integer
-      className:
-        title: Classname
-        type: string
-        minLength: 1
-      date:
-        title: Date
-        type: string
-        format: date
-      startTime:
-        title: Starttime
-        type: string
-      endTime:
-        title: Endtime
-        type: string
-      trainerId:
-        title: Trainerid
-        type: integer
-      trainerName:
-        title: Trainername
-        type: string
-        minLength: 1
-      maxMemberCount:
-        title: Maxmembercount
-        type: integer
-      currentMemberCount:
-        title: Currentmembercount
-        type: integer
-        readOnly: true
-      description:
-        title: Description
-        type: string
-        minLength: 1
-      reservations:
-        title: Reservations
-        type: string
-        readOnly: true
-  BalanceHistory:
-    required:
-      - user
-      - transactionType
-      - amount
-      - balanceBefore
-      - balanceAfter
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      user:
-        title: User
-        type: integer
-      transactionType:
-        title: 거래 유형
-        type: string
-        enum:
-          - deposit
-          - purchase
-          - refund
-          - admin_adjust
-      transactionTypeDisplay:
-        title: Transaction type display
-        type: string
-        readOnly: true
-        minLength: 1
-      amount:
-        title: 금액
-        type: string
-        format: decimal
-      balanceBefore:
-        title: 변경 전 잔액
-        type: string
-        format: decimal
-      balanceAfter:
-        title: 변경 후 잔액
-        type: string
-        format: decimal
-      description:
-        title: 설명
-        type: string
-      createdAt:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-  UserBalance:
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      user:
-        title: User
-        type: integer
-        readOnly: true
-      userNickname:
-        title: User nickname
-        type: string
-        readOnly: true
-        minLength: 1
-      balance:
-        title: 보유 금액
-        type: string
-        format: decimal
-        readOnly: true
-      updatedAt:
-        title: Updated at
-        type: string
-        format: date-time
-        readOnly: true
-  BalanceAdd:
-    required:
-      - userId
-      - amount
-    type: object
-    properties:
-      userId:
-        title: User id
-        type: integer
-        minimum: 1
-      amount:
-        title: Amount
-        type: string
-        format: decimal
-      description:
-        title: Description
-        type: string
-        default: 관리자 입금
-        maxLength: 255
-        minLength: 1
-  TicketProduct:
-    required:
-      - name
-      - ticketType
-      - durationDays
-      - usableCount
-      - regularPrice
-      - discountPrice
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      name:
-        title: 상품명
-        type: string
-        maxLength: 100
-        minLength: 1
-      ticketType:
-        title: 수강권 타입
-        type: string
-        enum:
-          - weekly_3
-          - weekly_5
-          - weekly_2
-          - daily
-      ticketTypeDisplay:
-        title: Ticket type display
-        type: string
-        readOnly: true
-        minLength: 1
-      durationDays:
-        title: 유효기간(일)
-        type: integer
-        enum:
-          - 30
-          - 60
-          - 90
-      durationDisplay:
-        title: Duration display
-        type: string
-        readOnly: true
-        minLength: 1
-      usableCount:
-        title: 사용 가능 횟수
-        type: integer
-        maximum: 2147483647
-        minimum: -2147483648
-      regularPrice:
-        title: 정상가
-        type: string
-        format: decimal
-      discountPrice:
-        title: 할인가
-        type: string
-        format: decimal
-      currentPrice:
-        title: Current price
-        type: string
-        format: decimal
-        readOnly: true
-      discountRate:
-        title: Discount rate
-        type: number
-        readOnly: true
-      isActive:
-        title: 판매 활성화
-        type: boolean
-  Purchase:
-    required:
-      - user
-      - ticketProduct
-      - unitPrice
-      - totalPrice
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      user:
-        title: 구매자
-        type: integer
-      userNickname:
-        title: User nickname
-        type: string
-        readOnly: true
-        minLength: 1
-      ticketProduct:
-        title: 구매 상품
-        type: integer
-      ticketProductName:
-        title: Ticket product name
-        type: string
-        readOnly: true
-        minLength: 1
-      quantity:
-        title: 구매 수량
-        type: integer
-        maximum: 2147483647
-        minimum: -2147483648
-      unitPrice:
-        title: 단가
-        type: string
-        format: decimal
-      totalPrice:
-        title: 총 결제 금액
-        type: string
-        format: decimal
-      purchasedAt:
-        title: 구매 일시
-        type: string
-        format: date-time
-        readOnly: true
-      paymentStatus:
-        title: 결제 상태
-        type: string
-        enum:
-          - pending
-          - completed
-          - failed
-          - refunded
-      paymentStatusDisplay:
-        title: Payment status display
-        type: string
-        readOnly: true
-        minLength: 1
-  PurchaseCreate:
-    required:
-      - productId
-    type: object
-    properties:
-      productId:
-        title: Product id
-        type: integer
-        minimum: 1
-      quantity:
-        title: Quantity
-        type: integer
-        default: 1
-        minimum: 1
-  ShopTicket:
-    required:
-      - user
-      - expiredDatetime
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      user:
-        title: 사용자
-        type: integer
-      expiredDatetime:
-        title: 만료일시
-        description: 티켓이 만료되는 날짜와 시간
-        type: string
-        format: date-time
-      usableCount:
-        title: 사용 가능 횟수
-        description: 남은 수업 이용 가능 횟수
-        type: integer
-        maximum: 2147483647
-        minimum: -2147483648
-      isExpired:
-        title: Is expired
-        type: string
-        readOnly: true
-      isUsable:
-        title: Is usable
-        type: string
-        readOnly: true
-      createdAt:
-        title: 생성일시
-        type: string
-        format: date-time
-        readOnly: true
-      updatedAt:
-        title: 수정일시
-        type: string
-        format: date-time
-        readOnly: true
-  TierAnswer:
-    required:
-      - tier
-    type: object
-    properties:
-      tier:
-        title: Tier
-        description: 선택한 등급
-        type: string
-        enum:
-          - IRON
-          - BRONZE
-          - SILVER
-          - GOLD
-          - PLATINUM
-          - DIAMOND
-          - MASTER
-          - CHALLENGER
-  Trainer:
-    type: object
-    properties:
-      userId:
-        title: User id
-        type: integer
-        readOnly: true
-      username:
-        title: 사용자 이름
-        description: 150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.
-        type: string
-        readOnly: true
-        minLength: 1
-      name:
-        title: 실명
-        description: 사용자의 실제 이름
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      nickname:
-        title: 닉네임
-        description: 시스템에서 표시될 닉네임
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      displayName:
-        title: Display name
-        type: string
-        readOnly: true
-        minLength: 1
-      role:
-        title: 역할
-        description: 사용자의 시스템 내 역할
-        type: string
-        enum:
-          - MEMBER
-          - TRAINER
-          - MANAGER
-          - ADMIN
-        readOnly: true
-      roleDisplay:
-        title: Role display
-        type: string
-        readOnly: true
-        minLength: 1
-      tier:
-        title: 등급
-        description: 사용자의 운동 등급
-        type: string
-        enum:
-          - IRON
-          - BRONZE
-          - SILVER
-          - GOLD
-          - PLATINUM
-          - DIAMOND
-          - MASTER
-          - CHALLENGER
-        readOnly: true
-        x-nullable: true
-      tierDisplay:
-        title: Tier display
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      metadata:
-        title: 메타데이터
-        description: 추가 정보를 저장하는 JSON 필드
-        type: object
-  UserDetail:
-    type: object
-    properties:
-      userId:
-        title: User id
-        type: integer
-        readOnly: true
-      username:
-        title: 사용자 이름
-        description: 150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.
-        type: string
-        readOnly: true
-        minLength: 1
-      nickname:
-        title: 닉네임
-        description: 시스템에서 표시될 닉네임
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      name:
-        title: 실명
-        description: 사용자의 실제 이름
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      displayName:
-        title: Display name
-        type: string
-        readOnly: true
-        minLength: 1
-      phoneNumber:
-        title: Phone number
-        type: string
-        readOnly: true
-        minLength: 1
-      birthDate:
-        title: Birth date
-        type: string
-        format: date
-        readOnly: true
-        x-nullable: true
-      age:
-        title: Age
-        type: integer
-        readOnly: true
-        x-nullable: true
-      gender:
-        title: 성별
-        type: string
-        enum:
-          - MALE
-          - FEMALE
-        x-nullable: true
-      role:
-        title: Role
-        type: string
-        readOnly: true
-        minLength: 1
-      roleDisplay:
-        title: Role display
-        type: string
-        readOnly: true
-        minLength: 1
-      tier:
-        title: Tier
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      tierDisplay:
-        title: Tier display
-        type: string
-        readOnly: true
-        minLength: 1
-        x-nullable: true
-      isTrainerOrAbove:
-        title: Is trainer or above
-        type: boolean
-        readOnly: true
-      isManagerOrAbove:
-        title: Is manager or above
-        type: boolean
-        readOnly: true
-      activeTicket:
-        $ref: '#/definitions/UserTicket'
-      metadata:
-        title: 메타데이터
-        description: 추가 정보를 저장하는 JSON 필드
-        type: object
-      email:
-        title: Email
-        type: string
-        format: email
-        readOnly: true
-        minLength: 1
-      dateJoined:
-        title: Date joined
-        type: string
-        format: date-time
-        readOnly: true
-      lastLogin:
-        title: Last login
-        type: string
-        format: date-time
-        readOnly: true
-        x-nullable: true
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Hells Gym Management API",
+    "description": "\n        # Hells Gym 관리 시스템 API\n\n        헬스장 관리를 위한 종합 API 시스템입니다.\n\n        ## 주요 기능\n        - 👥 **사용자 관리**: 회원, 트레이너, 매니저, 관리자 권한 관리\n        - 🎓 **수업 관리**: 클래스 생성, 스케줄 관리, 예약 시스템  \n        - 🛒 **상점 관리**: 티켓 상품 판매, 잔액 관리, 구매 시스템\n        - 💬 **커뮤니티**: 게시판, 댓글 시스템\n        - 💳 **예약 관리**: 수업 예약, 취소, 관리\n        - 💰 **급여 관리**: 트레이너 급여 계산, 월별 정산\n\n        ## 인증 방식\n        JWT(JSON Web Token) 기반 인증을 사용합니다.\n        \n        ## API 버전\n        현재 버전: v1.0.0\n        \n        ## 권한 레벨\n        - **MEMBER**: 일반 회원\n        - **TRAINER**: 트레이너  \n        - **MANAGER**: 매니저\n        - **ADMIN**: 시스템 관리자\n        ",
+    "termsOfService": "https://hellsgym.com/terms/",
+    "contact": {
+      "name": "Hells Gym API Support",
+      "url": "https://hellsgym.com/support/",
+      "email": "api-support@hellsgym.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v1.0.0"
+  },
+  "host": "api.hellsgym.com",
+  "schemes": [
+    "https"
+  ],
+  "basePath": "/api",
+  "consumes": [
+    "application/json",
+    "application/json"
+  ],
+  "produces": [
+    "application/json",
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT 토큰을 입력하세요. 예: Bearer eyJ..."
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "paths": {
+    "/admin/users": {
+      "get": {
+        "operationId": "admin_users_list",
+        "summary": "전체 사용자 목록 조회",
+        "description": "관리자만 조회 가능한 전체 사용자 목록을 반환합니다.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ]
+      },
+      "parameters": []
+    },
+    "/admin/users/{userId}": {
+      "get": {
+        "operationId": "admin_users_read",
+        "summary": "사용자 상세 조회 (관리자)",
+        "description": "특정 사용자의 상세 정보를 조회합니다. (관리자만 가능)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ManagerUser"
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ]
+      },
+      "put": {
+        "operationId": "admin_users_update",
+        "summary": "사용자 상세 정보 조회 및 수정 뷰 (관리자 전용).",
+        "description": "사용자의 상세 정보를 조회하고 수정할 수 있습니다.\n티켓 정보도 함께 관리할 수 있습니다.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ManagerUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ManagerUser"
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "operationId": "admin_users_partial_update",
+        "summary": "사용자 정보 부분 수정 (관리자)",
+        "description": "특정 사용자의 정보를 부분적으로 수정합니다. (관리자만 가능)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "auth_login_create",
+        "summary": "로그인",
+        "description": "사용자 로그인 및 JWT 토큰 발급",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "로그인 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "nickname": {
+                      "type": "string"
+                    },
+                    "tier": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "auth_register_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserSignup"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserSignup"
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/token/refresh": {
+      "post": {
+        "operationId": "auth_token_refresh_create",
+        "description": "Takes a refresh type JSON web token and returns an access type JSON web\ntoken if the refresh token is valid.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TokenRefresh"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TokenRefresh"
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/classes/": {
+      "get": {
+        "operationId": "classes_list",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Class"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "post": {
+        "operationId": "classes_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Class"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Class"
+            }
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "parameters": []
+    },
+    "/classes/create/": {
+      "post": {
+        "operationId": "classes_create_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ClassCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ClassCreate"
+            }
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "parameters": []
+    },
+    "/classes/{classId}/delete/": {
+      "delete": {
+        "operationId": "classes_delete_delete",
+        "summary": "수업 삭제",
+        "description": "수업과 관련 일정을 삭제합니다. (소프트 삭제)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "수업 삭제 성공"
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "classId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/classes/{id}/": {
+      "get": {
+        "operationId": "classes_read",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Class"
+            }
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "put": {
+        "operationId": "classes_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Class"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Class"
+            }
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "patch": {
+        "operationId": "classes_partial_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Class"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Class"
+            }
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "delete": {
+        "operationId": "classes_delete",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "classes"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this class.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/community/board/{boardId}/posts/": {
+      "get": {
+        "operationId": "community_board_posts_list",
+        "description": "특정 게시판의 게시글 목록 조회 및 생성을 담당합니다.\n- /community/board/{boardId}/posts/",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "The pagination cursor value.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results to return per page.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/PostList"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "post": {
+        "operationId": "community_board_posts_create",
+        "description": "특정 게시판의 게시글 목록 조회 및 생성을 담당합니다.\n- /community/board/{boardId}/posts/",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PostList"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/PostList"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "boardId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/community/comments/": {
+      "get": {
+        "operationId": "community_comments_list",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "The pagination cursor value.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results to return per page.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Comment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "post": {
+        "operationId": "community_comments_create",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": []
+    },
+    "/community/comments/{id}/": {
+      "get": {
+        "operationId": "community_comments_read",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "put": {
+        "operationId": "community_comments_update",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "patch": {
+        "operationId": "community_comments_partial_update",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "delete": {
+        "operationId": "community_comments_delete",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/community/posts/": {
+      "get": {
+        "operationId": "community_posts_list",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Post"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "post": {
+        "operationId": "community_posts_create",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": []
+    },
+    "/community/posts/pinned/": {
+      "get": {
+        "operationId": "community_posts_pinned_posts",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/PostList"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": []
+    },
+    "/community/posts/pinned_posts/": {
+      "get": {
+        "operationId": "community_posts_pinned_posts2",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/PostList"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": []
+    },
+    "/community/posts/{id}/": {
+      "get": {
+        "operationId": "community_posts_read",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "put": {
+        "operationId": "community_posts_update",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "patch": {
+        "operationId": "community_posts_partial_update",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "delete": {
+        "operationId": "community_posts_delete",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this post.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/community/posts/{id}/pin/": {
+      "patch": {
+        "operationId": "community_posts_pin",
+        "description": "게시글 단건 조회/수정/삭제 및 상단 고정과 같은 액션을 담당합니다.\n- /community/posts/{postId}\n- /community/posts/pinned\n- /community/posts/{postId}/pin",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this post.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/community/posts/{post_pk}/comments/": {
+      "get": {
+        "operationId": "community_posts_comments_list",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "The pagination cursor value.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results to return per page.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Comment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "post": {
+        "operationId": "community_posts_comments_create",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "post_pk",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/community/posts/{post_pk}/comments/{id}/": {
+      "get": {
+        "operationId": "community_posts_comments_read",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "put": {
+        "operationId": "community_posts_comments_update",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "patch": {
+        "operationId": "community_posts_comments_partial_update",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "delete": {
+        "operationId": "community_posts_comments_delete",
+        "description": "댓글/답글의 생성, 수정, 삭제, 조회를 담당합니다.\n- /community/posts/{postId}/comments (목록 조회, 생성)\n- /community/comments/{commentId} (수정, 삭제)",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "community"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "post_pk",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/payroll/calculate/": {
+      "post": {
+        "operationId": "payroll_calculate_create",
+        "summary": "월별 급여 정산 실행 API",
+        "description": "특정 연/월의 모든 트레이너 급여를 계산하여 DB에 저장합니다. 연/월을 지정하지 않으면 지난달을 기준으로 자동 계산됩니다.",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "description": "계산할 연도 (YYYY)",
+            "type": "integer"
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "description": "계산할 월 (1-12)",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "계산 성공"
+          },
+          "400": {
+            "description": "잘못된 요청 또는 계산 중 오류 발생"
+          }
+        },
+        "tags": [
+          "payroll"
+        ]
+      },
+      "parameters": []
+    },
+    "/reservations/": {
+      "post": {
+        "operationId": "reservations_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReservationCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReservationCreate"
+            }
+          }
+        },
+        "tags": [
+          "reservations"
+        ]
+      },
+      "parameters": []
+    },
+    "/reservations/me": {
+      "get": {
+        "operationId": "reservations_me_list",
+        "summary": "내 예약 목록 조회",
+        "description": "로그인한 회원의 예약 목록을 조회합니다.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Reservation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "reservations"
+        ]
+      },
+      "parameters": []
+    },
+    "/reservations/{reservationId}": {
+      "delete": {
+        "operationId": "reservations_delete",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "reservations"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "reservationId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/schedules/": {
+      "get": {
+        "operationId": "schedules_list",
+        "summary": "수업 일정 목록 조회",
+        "description": "월별 수업 일정 목록을 조회합니다.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "description": "월 (예: 2023-05)",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Schedule"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "schedules"
+        ]
+      },
+      "parameters": []
+    },
+    "/schedules/{scheduleId}": {
+      "get": {
+        "operationId": "schedules_read",
+        "summary": "수업 일정 상세 조회",
+        "description": "특정 수업 일정의 상세 정보를 조회합니다.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ScheduleDetail"
+            }
+          }
+        },
+        "tags": [
+          "schedules"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "scheduleId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/shop/balance-history/": {
+      "get": {
+        "operationId": "shop_balance-history_list",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/BalanceHistory"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/balance-history/{id}/": {
+      "get": {
+        "operationId": "shop_balance-history_read",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BalanceHistory"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/shop/balances/": {
+      "get": {
+        "operationId": "shop_balances_list",
+        "description": "잔액 관리 API\n- GET /api/shop/balances/my_balance/: 내 잔액 조회\n- POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/UserBalance"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/balances/add-balance/": {
+      "post": {
+        "operationId": "shop_balances_add_balance",
+        "summary": "잔액 충전 (관리자 전용)",
+        "description": "관리자가 특정 사용자에게 잔액을 충전합니다.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BalanceAdd"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "잔액 충전 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "new_balance": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 데이터"
+          },
+          "403": {
+            "description": "권한 없음 (관리자 전용)"
+          }
+        },
+        "tags": [
+          "💰 잔액 관리"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/balances/my-balance/": {
+      "get": {
+        "operationId": "shop_balances_my_balance",
+        "summary": "내 잔액 조회",
+        "description": "현재 로그인한 사용자의 잔액 정보를 조회합니다.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "잔액 조회 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "balance": {
+                  "description": "잔액 (숫자)",
+                  "type": "number"
+                },
+                "formatted_balance": {
+                  "description": "포맷된 잔액 (예: 100,000원)",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요"
+          }
+        },
+        "tags": [
+          "💰 잔액 관리"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/balances/{id}/": {
+      "get": {
+        "operationId": "shop_balances_read",
+        "description": "잔액 관리 API\n- GET /api/shop/balances/my_balance/: 내 잔액 조회\n- POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserBalance"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "put": {
+        "operationId": "shop_balances_update",
+        "description": "잔액 관리 API\n- GET /api/shop/balances/my_balance/: 내 잔액 조회\n- POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserBalance"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserBalance"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "patch": {
+        "operationId": "shop_balances_partial_update",
+        "description": "잔액 관리 API\n- GET /api/shop/balances/my_balance/: 내 잔액 조회\n- POST /api/shop/balances/add_balance/: (관리자용) 잔액 추가",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserBalance"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserBalance"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/shop/products/": {
+      "get": {
+        "operationId": "shop_products_list",
+        "summary": "상품 목록 조회",
+        "description": "활성화된 티켓 상품 목록을 조회합니다.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "ticket_type",
+            "in": "query",
+            "description": "티켓 타입 필터 (daily, weekly_2, weekly_3, weekly_5)",
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly_2",
+              "weekly_3",
+              "weekly_5"
+            ]
+          },
+          {
+            "name": "duration",
+            "in": "query",
+            "description": "기간 필터 (30, 60, 90일)",
+            "type": "integer",
+            "enum": [
+              30,
+              60,
+              90
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "상품 목록 조회 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요"
+          }
+        },
+        "tags": [
+          "🎫 상품 관리"
+        ]
+      },
+      "post": {
+        "operationId": "shop_products_create",
+        "summary": "상품 생성",
+        "description": "새로운 티켓 상품을 생성합니다. (관리자 전용)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TicketProduct"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "상품 생성 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 데이터"
+          },
+          "403": {
+            "description": "권한 없음 (관리자 전용)"
+          }
+        },
+        "tags": [
+          "🎫 상품 관리"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/products/{id}/": {
+      "get": {
+        "operationId": "shop_products_read",
+        "description": "상품 하나 조회",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TicketProduct"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "put": {
+        "operationId": "shop_products_update",
+        "description": "상품 전체 수정 (관리자만)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TicketProduct"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TicketProduct"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "patch": {
+        "operationId": "shop_products_partial_update",
+        "description": "상품 부분 수정 (관리자만)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TicketProduct"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TicketProduct"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "delete": {
+        "operationId": "shop_products_delete",
+        "description": "상품 삭제 (관리자만)",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this 티켓 상품.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/shop/purchases/": {
+      "get": {
+        "operationId": "shop_purchases_list",
+        "summary": "💳 구매 관리 API",
+        "description": "티켓 상품 구매 및 구매 내역을 관리하는 API입니다.\n- 구매 시 잔액에서 자동 차감\n- 구매 완료 시 자동 티켓 발급",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Purchase"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "post": {
+        "operationId": "shop_purchases_create",
+        "summary": "티켓 구매",
+        "description": "\n티켓 상품을 구매합니다.\n\n- 사용자 잔액에서 자동 차감\n- 구매 완료 시 티켓 자동 발급\n- 잔액이 부족하면 구매 실패\n",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PurchaseCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "구매 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "purchase_id": {
+                  "type": "integer"
+                },
+                "remaining_balance": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "구매 실패 (잔액 부족, 잘못된 데이터 등)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "error_code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요"
+          }
+        },
+        "tags": [
+          "💳 구매 관리"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/purchases/{id}/": {
+      "get": {
+        "operationId": "shop_purchases_read",
+        "summary": "💳 구매 관리 API",
+        "description": "티켓 상품 구매 및 구매 내역을 관리하는 API입니다.\n- 구매 시 잔액에서 자동 차감\n- 구매 완료 시 자동 티켓 발급",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Purchase"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/shop/tickets/": {
+      "get": {
+        "operationId": "shop_tickets_list",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ShopTicket"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/tickets/my-tickets/": {
+      "get": {
+        "operationId": "shop_tickets_my_tickets",
+        "description": "내 티켓 조회",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ShopTicket"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": []
+    },
+    "/shop/tickets/{id}/": {
+      "get": {
+        "operationId": "shop_tickets_read",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ShopTicket"
+            }
+          }
+        },
+        "tags": [
+          "shop"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/tier/": {
+      "get": {
+        "operationId": "tier_list",
+        "summary": "티어 질문 목록 조회",
+        "description": "티어 결정을 위한 질문 목록을 조회합니다.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "질문 목록",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "questions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "question": {
+                        "type": "string"
+                      },
+                      "answers": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tier"
+        ]
+      },
+      "parameters": []
+    },
+    "/tier/answer": {
+      "post": {
+        "operationId": "tier_answer_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TierAnswer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TierAnswer"
+            }
+          }
+        },
+        "tags": [
+          "tier"
+        ]
+      },
+      "parameters": []
+    },
+    "/trainers/": {
+      "get": {
+        "operationId": "trainers_list",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Trainer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "trainers"
+        ]
+      },
+      "parameters": []
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "users_me_read",
+        "summary": "내 프로필 조회",
+        "description": "로그인한 사용자의 프로필 정보를 조회합니다.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserDetail"
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "parameters": []
+    },
+    "/users/me/password/reset": {
+      "post": {
+        "operationId": "users_me_password_reset_create",
+        "summary": "비밀번호 재설정 인증 및 변경",
+        "description": "인증번호를 확인하고 새로운 비밀번호로 변경합니다.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "required": [
+                "username",
+                "auth_code",
+                "new_password"
+              ],
+              "type": "object",
+              "properties": {
+                "username": {
+                  "description": "사용자명",
+                  "type": "string"
+                },
+                "auth_code": {
+                  "description": "인증번호",
+                  "type": "string"
+                },
+                "new_password": {
+                  "description": "새 비밀번호",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "비밀번호 변경 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "parameters": []
+    },
+    "/users/me/password/reset-request": {
+      "post": {
+        "operationId": "users_me_password_reset-request_create",
+        "summary": "비밀번호 재설정 인증번호 발송",
+        "description": "비밀번호 재설정을 위한 SMS 인증번호를 발송합니다.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "required": [
+                "username"
+              ],
+              "type": "object",
+              "properties": {
+                "username": {
+                  "description": "사용자명",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "인증번호 발송 성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "parameters": []
+    }
+  },
+  "definitions": {
+    "UserTicket": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "userId": {
+          "title": "User id",
+          "type": "integer",
+          "readOnly": true
+        },
+        "userName": {
+          "title": "User name",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "expiredDatetime": {
+          "title": "Expired datetime",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "usableCount": {
+          "title": "Usable count",
+          "type": "integer",
+          "readOnly": true
+        },
+        "isExpired": {
+          "title": "Is expired",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "isUsable": {
+          "title": "Is usable",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "daysUntilExpiry": {
+          "title": "Days until expiry",
+          "type": "integer",
+          "readOnly": true
+        },
+        "expiryStatus": {
+          "title": "Expiry status",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "createdAt": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updatedAt": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      },
+      "x-nullable": true
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "title": "User id",
+          "type": "integer",
+          "readOnly": true
+        },
+        "username": {
+          "title": "사용자 이름",
+          "description": "150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "nickname": {
+          "title": "닉네임",
+          "description": "시스템에서 표시될 닉네임",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "name": {
+          "title": "실명",
+          "description": "사용자의 실제 이름",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "displayName": {
+          "title": "Display name",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "phoneNumber": {
+          "title": "Phone number",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "birthDate": {
+          "title": "Birth date",
+          "type": "string",
+          "format": "date",
+          "readOnly": true,
+          "x-nullable": true
+        },
+        "age": {
+          "title": "Age",
+          "type": "integer",
+          "readOnly": true,
+          "x-nullable": true
+        },
+        "gender": {
+          "title": "성별",
+          "type": "string",
+          "enum": [
+            "MALE",
+            "FEMALE"
+          ],
+          "x-nullable": true
+        },
+        "role": {
+          "title": "Role",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "roleDisplay": {
+          "title": "Role display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "tier": {
+          "title": "Tier",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "tierDisplay": {
+          "title": "Tier display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "isTrainerOrAbove": {
+          "title": "Is trainer or above",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "isManagerOrAbove": {
+          "title": "Is manager or above",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "activeTicket": {
+          "$ref": "#/definitions/UserTicket"
+        },
+        "metadata": {
+          "title": "메타데이터",
+          "description": "추가 정보를 저장하는 JSON 필드",
+          "type": "object"
+        }
+      }
+    },
+    "ManagerUser": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "title": "User id",
+          "type": "integer",
+          "readOnly": true
+        },
+        "username": {
+          "title": "사용자 이름",
+          "description": "150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "nickname": {
+          "title": "Nickname",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "displayName": {
+          "title": "Display name",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "phoneNumber": {
+          "title": "Phone number",
+          "type": "string"
+        },
+        "birthDate": {
+          "title": "Birth date",
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
+        },
+        "age": {
+          "title": "Age",
+          "type": "integer",
+          "readOnly": true,
+          "x-nullable": true
+        },
+        "gender": {
+          "title": "Gender",
+          "type": "string",
+          "enum": [
+            "MALE",
+            "FEMALE"
+          ],
+          "x-nullable": true
+        },
+        "role": {
+          "title": "Role",
+          "type": "string",
+          "enum": [
+            "MEMBER",
+            "TRAINER",
+            "MANAGER",
+            "ADMIN"
+          ]
+        },
+        "roleDisplay": {
+          "title": "Role display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "tier": {
+          "title": "Tier",
+          "type": "string",
+          "enum": [
+            "IRON",
+            "BRONZE",
+            "SILVER",
+            "GOLD",
+            "PLATINUM",
+            "DIAMOND",
+            "MASTER",
+            "CHALLENGER"
+          ],
+          "x-nullable": true
+        },
+        "tierDisplay": {
+          "title": "Tier display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "isTrainerOrAbove": {
+          "title": "Is trainer or above",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "isManagerOrAbove": {
+          "title": "Is manager or above",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "activeTicket": {
+          "$ref": "#/definitions/UserTicket"
+        },
+        "metadata": {
+          "title": "Metadata",
+          "type": "object"
+        }
+      }
+    },
+    "UserLogin": {
+      "required": [
+        "username",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "username": {
+          "title": "Username",
+          "type": "string",
+          "minLength": 1
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "UserSignup": {
+      "required": [
+        "username",
+        "password",
+        "password2"
+      ],
+      "type": "object",
+      "properties": {
+        "username": {
+          "title": "Username",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 8
+        },
+        "password2": {
+          "title": "Password2",
+          "type": "string",
+          "minLength": 8
+        },
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "maxLength": 10
+        },
+        "nickname": {
+          "title": "Nickname",
+          "type": "string",
+          "maxLength": 50
+        },
+        "phoneNumber": {
+          "title": "Phone number",
+          "type": "string",
+          "maxLength": 20
+        },
+        "birthDate": {
+          "title": "Birth date",
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
+        },
+        "gender": {
+          "title": "Gender",
+          "type": "string",
+          "enum": [
+            "MALE",
+            "FEMALE"
+          ],
+          "x-nullable": true
+        },
+        "metadata": {
+          "title": "Metadata",
+          "type": "object",
+          "default": {}
+        }
+      }
+    },
+    "TokenRefresh": {
+      "required": [
+        "refresh"
+      ],
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "title": "Refresh",
+          "type": "string",
+          "minLength": 1
+        },
+        "access": {
+          "title": "Access",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        }
+      }
+    },
+    "Class": {
+      "required": [
+        "name",
+        "description",
+        "trainer"
+      ],
+      "type": "object",
+      "properties": {
+        "classId": {
+          "title": "Classid",
+          "type": "integer",
+          "readOnly": true
+        },
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity": {
+          "title": "Capacity",
+          "type": "integer",
+          "maximum": 4294967295,
+          "minimum": 0
+        },
+        "trainer": {
+          "title": "Trainer",
+          "type": "integer"
+        },
+        "metadata": {
+          "title": "Metadata",
+          "type": "object"
+        }
+      }
+    },
+    "ScheduleRule": {
+      "required": [
+        "weekday",
+        "startTime",
+        "endTime"
+      ],
+      "type": "object",
+      "properties": {
+        "weekday": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "maximum": 7,
+            "minimum": 1
+          }
+        },
+        "startTime": {
+          "title": "Starttime",
+          "type": "string"
+        },
+        "endTime": {
+          "title": "Endtime",
+          "type": "string"
+        }
+      }
+    },
+    "ClassCreate": {
+      "required": [
+        "className",
+        "trainerId",
+        "maxMemberCount",
+        "tier",
+        "startDate",
+        "endDate",
+        "description",
+        "scheduleRules"
+      ],
+      "type": "object",
+      "properties": {
+        "className": {
+          "title": "Classname",
+          "type": "string",
+          "minLength": 1
+        },
+        "trainerId": {
+          "title": "Trainerid",
+          "type": "integer"
+        },
+        "maxMemberCount": {
+          "title": "Maxmembercount",
+          "type": "integer"
+        },
+        "tier": {
+          "title": "Tier",
+          "type": "string",
+          "minLength": 1
+        },
+        "startDate": {
+          "title": "Startdate",
+          "type": "string",
+          "format": "date"
+        },
+        "endDate": {
+          "title": "Enddate",
+          "type": "string",
+          "format": "date"
+        },
+        "fixedMemberIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "default": []
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "minLength": 1
+        },
+        "scheduleRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ScheduleRule"
+          }
+        }
+      }
+    },
+    "Author": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "nickname": {
+          "title": "닉네임",
+          "description": "시스템에서 표시될 닉네임",
+          "type": "string",
+          "maxLength": 50,
+          "x-nullable": true
+        },
+        "tier": {
+          "title": "등급",
+          "description": "사용자의 운동 등급",
+          "type": "string",
+          "enum": [
+            "IRON",
+            "BRONZE",
+            "SILVER",
+            "GOLD",
+            "PLATINUM",
+            "DIAMOND",
+            "MASTER",
+            "CHALLENGER"
+          ],
+          "x-nullable": true
+        }
+      }
+    },
+    "PostList": {
+      "required": [
+        "title"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "title": {
+          "title": "Title",
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "author": {
+          "$ref": "#/definitions/Author"
+        },
+        "pinned": {
+          "title": "Pinned",
+          "type": "boolean"
+        },
+        "createdAt": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updatedAt": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "commentCount": {
+          "title": "Comment count",
+          "type": "integer",
+          "readOnly": true
+        }
+      }
+    },
+    "Comment": {
+      "required": [
+        "content"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "parent": {
+          "title": "Parent",
+          "type": "integer",
+          "readOnly": true
+        },
+        "parentId": {
+          "title": "Parent id",
+          "type": "integer",
+          "x-nullable": true
+        },
+        "content": {
+          "title": "Content",
+          "type": "string",
+          "minLength": 1
+        },
+        "author": {
+          "$ref": "#/definitions/Author"
+        },
+        "createdAt": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updatedAt": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "hasMoreReplies": {
+          "title": "Has more replies",
+          "type": "string",
+          "readOnly": true
+        },
+        "replies": {
+          "title": "Replies",
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    },
+    "Post": {
+      "required": [
+        "title",
+        "content"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "title": {
+          "title": "Title",
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "content": {
+          "title": "Content",
+          "type": "string",
+          "minLength": 1
+        },
+        "author": {
+          "$ref": "#/definitions/Author"
+        },
+        "pinned": {
+          "title": "Pinned",
+          "type": "boolean"
+        },
+        "createdAt": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updatedAt": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "ReservationCreate": {
+      "required": [
+        "scheduleId"
+      ],
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "title": "Scheduleid",
+          "type": "integer"
+        }
+      }
+    },
+    "Reservation": {
+      "required": [
+        "scheduleId",
+        "classId",
+        "className",
+        "date",
+        "startTime",
+        "endTime",
+        "trainerId",
+        "trainerName",
+        "maxMemberCount",
+        "currentMemberCount"
+      ],
+      "type": "object",
+      "properties": {
+        "reservationId": {
+          "title": "Reservationid",
+          "type": "integer",
+          "readOnly": true
+        },
+        "scheduleId": {
+          "title": "Scheduleid",
+          "type": "integer"
+        },
+        "classId": {
+          "title": "Classid",
+          "type": "integer"
+        },
+        "className": {
+          "title": "Classname",
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "title": "Date",
+          "type": "string",
+          "format": "date"
+        },
+        "startTime": {
+          "title": "Starttime",
+          "type": "string"
+        },
+        "endTime": {
+          "title": "Endtime",
+          "type": "string"
+        },
+        "trainerId": {
+          "title": "Trainerid",
+          "type": "integer"
+        },
+        "trainerName": {
+          "title": "Trainername",
+          "type": "string",
+          "minLength": 1
+        },
+        "maxMemberCount": {
+          "title": "Maxmembercount",
+          "type": "integer"
+        },
+        "currentMemberCount": {
+          "title": "Currentmembercount",
+          "type": "integer"
+        }
+      }
+    },
+    "Schedule": {
+      "required": [
+        "classId",
+        "className",
+        "date",
+        "startTime",
+        "endTime",
+        "trainerId",
+        "trainerName",
+        "maxMemberCount"
+      ],
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "title": "Scheduleid",
+          "type": "integer",
+          "readOnly": true
+        },
+        "classId": {
+          "title": "Classid",
+          "type": "integer"
+        },
+        "className": {
+          "title": "Classname",
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "title": "Date",
+          "type": "string",
+          "format": "date"
+        },
+        "startTime": {
+          "title": "Starttime",
+          "type": "string"
+        },
+        "endTime": {
+          "title": "Endtime",
+          "type": "string"
+        },
+        "trainerId": {
+          "title": "Trainerid",
+          "type": "integer"
+        },
+        "trainerName": {
+          "title": "Trainername",
+          "type": "string",
+          "minLength": 1
+        },
+        "maxMemberCount": {
+          "title": "Maxmembercount",
+          "type": "integer"
+        },
+        "currentMemberCount": {
+          "title": "Currentmembercount",
+          "type": "integer",
+          "readOnly": true
+        }
+      }
+    },
+    "ScheduleDetail": {
+      "required": [
+        "classId",
+        "className",
+        "date",
+        "startTime",
+        "endTime",
+        "trainerId",
+        "trainerName",
+        "maxMemberCount",
+        "description"
+      ],
+      "type": "object",
+      "properties": {
+        "classId": {
+          "title": "Classid",
+          "type": "integer"
+        },
+        "className": {
+          "title": "Classname",
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "title": "Date",
+          "type": "string",
+          "format": "date"
+        },
+        "startTime": {
+          "title": "Starttime",
+          "type": "string"
+        },
+        "endTime": {
+          "title": "Endtime",
+          "type": "string"
+        },
+        "trainerId": {
+          "title": "Trainerid",
+          "type": "integer"
+        },
+        "trainerName": {
+          "title": "Trainername",
+          "type": "string",
+          "minLength": 1
+        },
+        "maxMemberCount": {
+          "title": "Maxmembercount",
+          "type": "integer"
+        },
+        "currentMemberCount": {
+          "title": "Currentmembercount",
+          "type": "integer",
+          "readOnly": true
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "minLength": 1
+        },
+        "reservations": {
+          "title": "Reservations",
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    },
+    "BalanceHistory": {
+      "required": [
+        "user",
+        "transactionType",
+        "amount",
+        "balanceBefore",
+        "balanceAfter"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "user": {
+          "title": "User",
+          "type": "integer"
+        },
+        "transactionType": {
+          "title": "거래 유형",
+          "type": "string",
+          "enum": [
+            "deposit",
+            "purchase",
+            "refund",
+            "admin_adjust"
+          ]
+        },
+        "transactionTypeDisplay": {
+          "title": "Transaction type display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "amount": {
+          "title": "금액",
+          "type": "string",
+          "format": "decimal"
+        },
+        "balanceBefore": {
+          "title": "변경 전 잔액",
+          "type": "string",
+          "format": "decimal"
+        },
+        "balanceAfter": {
+          "title": "변경 후 잔액",
+          "type": "string",
+          "format": "decimal"
+        },
+        "description": {
+          "title": "설명",
+          "type": "string"
+        },
+        "createdAt": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "UserBalance": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "user": {
+          "title": "User",
+          "type": "integer",
+          "readOnly": true
+        },
+        "userNickname": {
+          "title": "User nickname",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "balance": {
+          "title": "보유 금액",
+          "type": "string",
+          "format": "decimal",
+          "readOnly": true
+        },
+        "updatedAt": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "BalanceAdd": {
+      "required": [
+        "userId",
+        "amount"
+      ],
+      "type": "object",
+      "properties": {
+        "userId": {
+          "title": "User id",
+          "type": "integer",
+          "minimum": 1
+        },
+        "amount": {
+          "title": "Amount",
+          "type": "string",
+          "format": "decimal"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "default": "관리자 입금",
+          "maxLength": 255,
+          "minLength": 1
+        }
+      }
+    },
+    "TicketProduct": {
+      "required": [
+        "name",
+        "ticketType",
+        "durationDays",
+        "usableCount",
+        "regularPrice",
+        "discountPrice"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "name": {
+          "title": "상품명",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "ticketType": {
+          "title": "수강권 타입",
+          "type": "string",
+          "enum": [
+            "weekly_3",
+            "weekly_5",
+            "weekly_2",
+            "daily"
+          ]
+        },
+        "ticketTypeDisplay": {
+          "title": "Ticket type display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "durationDays": {
+          "title": "유효기간(일)",
+          "type": "integer",
+          "enum": [
+            30,
+            60,
+            90
+          ]
+        },
+        "durationDisplay": {
+          "title": "Duration display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "usableCount": {
+          "title": "사용 가능 횟수",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": -2147483648
+        },
+        "regularPrice": {
+          "title": "정상가",
+          "type": "string",
+          "format": "decimal"
+        },
+        "discountPrice": {
+          "title": "할인가",
+          "type": "string",
+          "format": "decimal"
+        },
+        "currentPrice": {
+          "title": "Current price",
+          "type": "string",
+          "format": "decimal",
+          "readOnly": true
+        },
+        "discountRate": {
+          "title": "Discount rate",
+          "type": "number",
+          "readOnly": true
+        },
+        "isActive": {
+          "title": "판매 활성화",
+          "type": "boolean"
+        }
+      }
+    },
+    "Purchase": {
+      "required": [
+        "user",
+        "ticketProduct",
+        "unitPrice",
+        "totalPrice"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "user": {
+          "title": "구매자",
+          "type": "integer"
+        },
+        "userNickname": {
+          "title": "User nickname",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "ticketProduct": {
+          "title": "구매 상품",
+          "type": "integer"
+        },
+        "ticketProductName": {
+          "title": "Ticket product name",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "quantity": {
+          "title": "구매 수량",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": -2147483648
+        },
+        "unitPrice": {
+          "title": "단가",
+          "type": "string",
+          "format": "decimal"
+        },
+        "totalPrice": {
+          "title": "총 결제 금액",
+          "type": "string",
+          "format": "decimal"
+        },
+        "purchasedAt": {
+          "title": "구매 일시",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "paymentStatus": {
+          "title": "결제 상태",
+          "type": "string",
+          "enum": [
+            "pending",
+            "completed",
+            "failed",
+            "refunded"
+          ]
+        },
+        "paymentStatusDisplay": {
+          "title": "Payment status display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        }
+      }
+    },
+    "PurchaseCreate": {
+      "required": [
+        "productId"
+      ],
+      "type": "object",
+      "properties": {
+        "productId": {
+          "title": "Product id",
+          "type": "integer",
+          "minimum": 1
+        },
+        "quantity": {
+          "title": "Quantity",
+          "type": "integer",
+          "default": 1,
+          "minimum": 1
+        }
+      }
+    },
+    "ShopTicket": {
+      "required": [
+        "user",
+        "expiredDatetime"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "user": {
+          "title": "사용자",
+          "type": "integer"
+        },
+        "expiredDatetime": {
+          "title": "만료일시",
+          "description": "티켓이 만료되는 날짜와 시간",
+          "type": "string",
+          "format": "date-time"
+        },
+        "usableCount": {
+          "title": "사용 가능 횟수",
+          "description": "남은 수업 이용 가능 횟수",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": -2147483648
+        },
+        "isExpired": {
+          "title": "Is expired",
+          "type": "string",
+          "readOnly": true
+        },
+        "isUsable": {
+          "title": "Is usable",
+          "type": "string",
+          "readOnly": true
+        },
+        "createdAt": {
+          "title": "생성일시",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updatedAt": {
+          "title": "수정일시",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "TierAnswer": {
+      "required": [
+        "tier"
+      ],
+      "type": "object",
+      "properties": {
+        "tier": {
+          "title": "Tier",
+          "description": "선택한 등급",
+          "type": "string",
+          "enum": [
+            "IRON",
+            "BRONZE",
+            "SILVER",
+            "GOLD",
+            "PLATINUM",
+            "DIAMOND",
+            "MASTER",
+            "CHALLENGER"
+          ]
+        }
+      }
+    },
+    "Trainer": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "title": "User id",
+          "type": "integer",
+          "readOnly": true
+        },
+        "username": {
+          "title": "사용자 이름",
+          "description": "150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "name": {
+          "title": "실명",
+          "description": "사용자의 실제 이름",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "nickname": {
+          "title": "닉네임",
+          "description": "시스템에서 표시될 닉네임",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "displayName": {
+          "title": "Display name",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "role": {
+          "title": "역할",
+          "description": "사용자의 시스템 내 역할",
+          "type": "string",
+          "enum": [
+            "MEMBER",
+            "TRAINER",
+            "MANAGER",
+            "ADMIN"
+          ],
+          "readOnly": true
+        },
+        "roleDisplay": {
+          "title": "Role display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "tier": {
+          "title": "등급",
+          "description": "사용자의 운동 등급",
+          "type": "string",
+          "enum": [
+            "IRON",
+            "BRONZE",
+            "SILVER",
+            "GOLD",
+            "PLATINUM",
+            "DIAMOND",
+            "MASTER",
+            "CHALLENGER"
+          ],
+          "readOnly": true,
+          "x-nullable": true
+        },
+        "tierDisplay": {
+          "title": "Tier display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "metadata": {
+          "title": "메타데이터",
+          "description": "추가 정보를 저장하는 JSON 필드",
+          "type": "object"
+        }
+      }
+    },
+    "UserDetail": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "title": "User id",
+          "type": "integer",
+          "readOnly": true
+        },
+        "username": {
+          "title": "사용자 이름",
+          "description": "150자 이하 문자, 숫자 그리고 @/./+/-/_만 가능합니다.",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "nickname": {
+          "title": "닉네임",
+          "description": "시스템에서 표시될 닉네임",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "name": {
+          "title": "실명",
+          "description": "사용자의 실제 이름",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "displayName": {
+          "title": "Display name",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "phoneNumber": {
+          "title": "Phone number",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "birthDate": {
+          "title": "Birth date",
+          "type": "string",
+          "format": "date",
+          "readOnly": true,
+          "x-nullable": true
+        },
+        "age": {
+          "title": "Age",
+          "type": "integer",
+          "readOnly": true,
+          "x-nullable": true
+        },
+        "gender": {
+          "title": "성별",
+          "type": "string",
+          "enum": [
+            "MALE",
+            "FEMALE"
+          ],
+          "x-nullable": true
+        },
+        "role": {
+          "title": "Role",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "roleDisplay": {
+          "title": "Role display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "tier": {
+          "title": "Tier",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "tierDisplay": {
+          "title": "Tier display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1,
+          "x-nullable": true
+        },
+        "isTrainerOrAbove": {
+          "title": "Is trainer or above",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "isManagerOrAbove": {
+          "title": "Is manager or above",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "activeTicket": {
+          "$ref": "#/definitions/UserTicket"
+        },
+        "metadata": {
+          "title": "메타데이터",
+          "description": "추가 정보를 저장하는 JSON 필드",
+          "type": "object"
+        },
+        "email": {
+          "title": "Email",
+          "type": "string",
+          "format": "email",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "dateJoined": {
+          "title": "Date joined",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "lastLogin": {
+          "title": "Last login",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true,
+          "x-nullable": true
+        }
+      }
+    }
+  }
+}
