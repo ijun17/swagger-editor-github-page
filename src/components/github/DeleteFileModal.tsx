@@ -14,15 +14,7 @@ export default function DeleteFileModal({ isOpen, onClose, path }: Props) {
         onSuccess: onClose,
         onError: onClose,
       });
-    console.log("test");
   };
-  console.log(
-    deleteFileMutation.isError,
-    deleteFileMutation.isIdle,
-    deleteFileMutation.isPaused,
-    deleteFileMutation.isPending,
-    deleteFileMutation.isSuccess
-  );
 
   return (
     <>
