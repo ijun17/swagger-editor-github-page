@@ -58,5 +58,21 @@
         "type": "file"
       }
     ]
+  },
+  {
+    "name": "scar",
+    "path": "docs/scar",
+    "html_url": "https://github.com/ijun17/swagger-editor-github-page/tree/main/docs/scar",
+    "download_url": null,
+    "type": "dir",
+    "items": [
+      {
+        "name": "v1.json",
+        "path": "docs/scar/v1.json",
+        "html_url": "https://github.com/ijun17/swagger-editor-github-page/blob/main/docs/scar/v1.json",
+        "download_url": "https://raw.githubusercontent.com/ijun17/swagger-editor-github-page/main/docs/scar/v1.json",
+        "type": "file"
+      }
+    ]
   }
 ]
